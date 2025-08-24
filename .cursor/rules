@@ -1,0 +1,54 @@
+# Mira - AI Company Research Tool (Monorepo)
+
+Agentic AI library for company research that automatically analyzes companies by scraping their websites, social media, and public information. Uses 5 specialized AI agents to extract comprehensive business intelligence.
+
+**Key Features:**
+
+- Agentic AI library for deep company analysis
+- Real-time web scraping with intelligent content extraction
+- LinkedIn and Google search integration
+- Company criteria-based analysis
+- Server-sent events for live progress tracking
+
+**MONOREPO STRUCTURE**:
+
+- `packages/mira-ai/` - Core TypeScript library (reusable npm package)
+- `packages/mira-frontend/` - Next.js 15 frontend application
+
+## Code Style & Naming
+
+### File Naming
+
+- Use kebab-case for files: `company-analysis.ts`, `data-merger.ts`
+- Use PascalCase for components: `CompanyProgress.tsx`
+- Use descriptive names that explain purpose: `linkedin-company-scraper.ts`
+
+### Variable & Function Naming
+
+- Use camelCase: `researchCompany`, `progressCallback`
+- Be descriptive: `scrapingBeeClient` not `client`
+- Prefer verb-noun for functions: `createProgressReporter`, `mergeDataPoints`
+- Use meaningful constants: `PROGRESS_EVENTS`, `DATA_POINT_TYPES`
+
+### Code Quality
+
+- Use TypeScript strictly with proper type definitions
+- Prefer const over let, avoid var completely
+- Keep functions small and focused on single responsibility
+- Add JSDoc comments for public APIs and complex logic
+- Use meaningful variable names that describe business purpose
+
+## Monorepo Guidelines
+
+- Import between packages using package names: `import { researchCompany } from 'mira-ai'`
+- Never use relative paths between packages: `../../../mira/src/types`
+- Keep shared types in appropriate package domains
+- Use npm workspaces for dependency management
+- Each package has specific .cursor/rules for detailed guidelines
+
+## Git Conventions
+
+- Conventional commits: `feat(core): add linkedin scraping`, `fix(frontend): progress bar styling`
+- One logical change per commit with clear scope
+- Use descriptive messages that explain business impact
+- Reference issues/PRs when applicable

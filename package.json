@@ -1,0 +1,34 @@
+{
+  "name": "mira-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "author": "Dimi Mikadze <hi@dimimikadze.com>",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build:mira-ai": "npm run build --workspace=mira-ai",
+    "build:mira-frontend": "npm run build:mira-ai && npm run build --workspace=mira-frontend",
+    "build": "npm run build:mira-ai && npm run build:mira-frontend",
+    "dev:mira-ai": "npm run dev --workspace=mira-ai",
+    "dev:mira-frontend": "npm run build:mira-ai && npm run dev --workspace=mira-frontend",
+    "clean": "npm run clean --workspace=mira-ai && rimraf packages/*/node_modules packages/*/package-lock.json node_modules package-lock.json"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.5",
+    "typescript": "^5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dimimikadze/mira.git"
+  },
+  "homepage": "https://github.com/dimimikadze/mira#readme",
+  "bugs": {
+    "url": "https://github.com/dimimikadze/mira/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

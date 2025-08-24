@@ -1,0 +1,77 @@
+{
+  "name": "mira-ai",
+  "version": "1.0.9",
+  "description": "Agentic AI library for automated company research",
+  "license": "MIT",
+  "author": "Dimi Mikadze <hi@dimimikadze.com>",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "ai-agents",
+    "multi-agent-system",
+    "company-research",
+    "data-enrichment",
+    "business-research",
+    "automated-research",
+    "b2b"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test:scraper": "NODE_OPTIONS=--experimental-vm-modules jest scraper --verbose",
+    "test:google-search": "NODE_OPTIONS=--experimental-vm-modules jest google-search --verbose",
+    "test:linkedin-scraper": "NODE_OPTIONS=--experimental-vm-modules jest linkedin-company-scraper --verbose",
+    "test:discovery-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/discovery-agent.test.ts",
+    "test:internal-pages-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/internal-pages-agent.test.ts",
+    "test:google-search-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/google-search-agent.test.ts",
+    "test:linkedin-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/linkedin-agent.test.ts",
+    "test:company-analysis-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/company-analysis-agent.test.ts"
+  },
+  "dependencies": {
+    "@openai/agents": "^0.0.15",
+    "jsdom": "^26.1.0",
+    "scrapingbee": "^1.7.5",
+    "zod": "<=3.25.67"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.13",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^20",
+    "jest": "^29.7.0",
+    "jest-environment-node": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dimimikadze/mira.git",
+    "directory": "packages/mira-ai"
+  },
+  "homepage": "https://github.com/dimimikadze/mira/tree/main/packages/mira-ai#readme",
+  "bugs": {
+    "url": "https://github.com/dimimikadze/mira/issues"
+  }
+}

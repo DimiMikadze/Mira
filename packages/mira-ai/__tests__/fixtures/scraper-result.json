@@ -1,0 +1,416 @@
+{
+  "url": "https://www.github.com",
+  "result": {
+    "content": "Build and ship software on a single, collaborative platformJoin the world’s most widely adopted AI-powered developer platform.Enter your emailSign up for GitHubTry GitHub CopilotGitHub featuresA demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet.CodePlanCollaborateAutomateSecureCodeCode quickly and more securely with GitHub Copilot embedded throughout your workflows.GitHub customersAccelerate performanceWith GitHub Copilot embedded throughout the platform, you can simplify your toolchain, automate tasks, and improve the developer experience.A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown , then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results.Work 55% faster. Increase productivity with AI-powered coding assistance, including code completion, chat, and more.Explore GitHub CopilotDuolingo boosts developer speed by 25% with GitHub CopilotRead customer story2024 Gartner® Magic Quadrant™ for AI Code AssistantsRead industry reportAutomate any workflowOptimize your process with simple and secured CI/CD.Discover GitHub ActionsGet up and running in secondsStart building instantly with a comprehensive dev environment in the cloud.Check out GitHub CodespacesBuild on the goManage projects and chat with GitHub Copilot from anywhere.Download GitHub MobileIntegrate the tools you loveSync with 17,000+ integrations and a growing library of Copilot Extensions.Visit GitHub MarketplaceBuilt-in application security where found means fixedUse AI to find and fix vulnerabilities—freeing your teams to ship more secure software faster.Apply fixes in seconds. Spend less time fixing vulnerabilities and more time building features with Copilot Autofix.Explore GitHub Advanced SecuritySolve security debt. Leverage AI-assisted security campaigns to reduce application vulnerabilities and zero-day attacks.Discover security campaignsDependencies you can depend on. Update vulnerable dependencies with supported fixes for breaking changes.Learn about DependabotYour secrets, your business: protected. Detect, prevent, and remediate leaked secrets across your organization.Read about secret scanning7x faster vulnerability fixes with GitHub90% coverage of alert types in all supported languages with Copilot AutofixWork together, achieve moreCollaborate with your teams, use management tools that sync with your projects, and code from anywhere—all on a single, integrated platform.Your workflows, your way. Plan effectively with an adaptable spreadsheet that syncs with your work.Jump into GitHub Projects“It helps us onboard new software engineers and get them productive right away. We have all our source code, issues, and pull requests in one place... GitHub is a complete platform that frees us from menial tasks and enables us to do our best work.Fabian FaulhaberApplication manager at Mercedes-BenzKeep track of your tasksCreate issues and manage projects with tools that adapt to your code.Explore GitHub IssuesShare ideas and ask questionsCreate space for open-ended conversations alongside your project.Discover GitHub DiscussionsReview code changes togetherCreate review processes that improve code quality and fit neatly into your workflow.Learn about code reviewFund open source projectsBecome an open source partner and support the tools and libraries that power your work.Dive into GitHub SponsorsFrom startups to enterprises, GitHub scales with teams of any size in any industry.By industryBy sizeBy use caseBy industryTechnologyFigma streamlines development and strengthens securityRead customer storyAutomotiveMercedes-Benz standardizes source code and automates onboardingRead customer storyFinancial servicesMercado Libre cuts coding time by 50%Read customer storyExplore customer storiesView all solutionsMillions of developers and businesses call GitHub homeWhether you’re scaling your development process or just learning how to code, GitHub is where you belong. Join the world’s most widely adopted AI-powered developer platform to build the technologies that redefine what’s possible.Enter your emailSign up for GitHubTry GitHub Copilot",
+    "links": [
+      {
+        "href": "https://github.com/features/copilot",
+        "text": "GitHub Copilot Write better code with AI"
+      },
+      {
+        "href": "https://github.com/features/spark",
+        "text": "GitHub Spark New Build and deploy intelligent apps"
+      },
+      {
+        "href": "https://github.com/features/models",
+        "text": "GitHub Models New Manage and compare prompts"
+      },
+      {
+        "href": "https://github.com/security/advanced-security",
+        "text": "GitHub Advanced Security Find and fix vulnerabilities"
+      },
+      {
+        "href": "https://github.com/features/actions",
+        "text": "Actions Automate any workflow"
+      },
+      {
+        "href": "https://github.com/features/codespaces",
+        "text": "Codespaces Instant dev environments"
+      },
+      {
+        "href": "https://github.com/features/issues",
+        "text": "Issues Plan and track work"
+      },
+      {
+        "href": "https://github.com/features/code-review",
+        "text": "Code Review Manage code changes"
+      },
+      {
+        "href": "https://github.com/features/discussions",
+        "text": "Discussions Collaborate outside of code"
+      },
+      {
+        "href": "https://github.com/features/code-search",
+        "text": "Code Search Find more, search less"
+      },
+      {
+        "href": "https://github.com/why-github",
+        "text": "Why GitHub"
+      },
+      {
+        "href": "https://github.com/features",
+        "text": "All features"
+      },
+      {
+        "href": "https://docs.github.com/",
+        "text": "Documentation"
+      },
+      {
+        "href": "https://skills.github.com/",
+        "text": "GitHub Skills"
+      },
+      {
+        "href": "https://github.blog/",
+        "text": "Blog"
+      },
+      {
+        "href": "https://github.com/enterprise",
+        "text": "Enterprises"
+      },
+      {
+        "href": "https://github.com/team",
+        "text": "Small and medium teams"
+      },
+      {
+        "href": "https://github.com/enterprise/startups",
+        "text": "Startups"
+      },
+      {
+        "href": "https://www.github.com/solutions/industry/nonprofits",
+        "text": "Nonprofits"
+      },
+      {
+        "href": "https://www.github.com/solutions/use-case/devsecops",
+        "text": "DevSecOps"
+      },
+      {
+        "href": "https://www.github.com/solutions/use-case/devops",
+        "text": "DevOps"
+      },
+      {
+        "href": "https://www.github.com/solutions/use-case/ci-cd",
+        "text": "CI/CD"
+      },
+      {
+        "href": "https://www.github.com/solutions/use-case",
+        "text": "View all use cases"
+      },
+      {
+        "href": "https://www.github.com/solutions/industry/healthcare",
+        "text": "Healthcare"
+      },
+      {
+        "href": "https://www.github.com/solutions/industry/financial-services",
+        "text": "Financial services"
+      },
+      {
+        "href": "https://www.github.com/solutions/industry/manufacturing",
+        "text": "Manufacturing"
+      },
+      {
+        "href": "https://www.github.com/solutions/industry/government",
+        "text": "Government"
+      },
+      {
+        "href": "https://www.github.com/solutions/industry",
+        "text": "View all industries"
+      },
+      {
+        "href": "https://www.github.com/solutions",
+        "text": "View all solutions"
+      },
+      {
+        "href": "https://www.github.com/resources/articles/ai",
+        "text": "AI"
+      },
+      {
+        "href": "https://www.github.com/resources/articles/devops",
+        "text": "DevOps"
+      },
+      {
+        "href": "https://www.github.com/resources/articles/security",
+        "text": "Security"
+      },
+      {
+        "href": "https://www.github.com/resources/articles/software-development",
+        "text": "Software Development"
+      },
+      {
+        "href": "https://www.github.com/resources/articles",
+        "text": "View all"
+      },
+      {
+        "href": "https://resources.github.com/learn/pathways",
+        "text": "Learning Pathways"
+      },
+      {
+        "href": "https://resources.github.com/",
+        "text": "Events & Webinars"
+      },
+      {
+        "href": "https://github.com/resources/whitepapers",
+        "text": "Ebooks & Whitepapers"
+      },
+      {
+        "href": "https://github.com/customer-stories",
+        "text": "Customer Stories"
+      },
+      {
+        "href": "https://partner.github.com/",
+        "text": "Partners"
+      },
+      {
+        "href": "https://github.com/solutions/executive-insights",
+        "text": "Executive Insights"
+      },
+      {
+        "href": "https://www.github.com/sponsors",
+        "text": "GitHub Sponsors Fund open source developers"
+      },
+      {
+        "href": "https://github.com/readme",
+        "text": "The ReadME Project GitHub community articles"
+      },
+      {
+        "href": "https://github.com/topics",
+        "text": "Topics"
+      },
+      {
+        "href": "https://github.com/trending",
+        "text": "Trending"
+      },
+      {
+        "href": "https://github.com/collections",
+        "text": "Collections"
+      },
+      {
+        "href": "https://www.github.com/enterprise",
+        "text": "Enterprise platform AI-powered developer platform"
+      },
+      {
+        "href": "https://www.github.com/features/copilot/copilot-business",
+        "text": "Copilot for business Enterprise-grade AI features"
+      },
+      {
+        "href": "https://www.github.com/premium-support",
+        "text": "Premium Support Enterprise-grade 24/7 support"
+      },
+      {
+        "href": "https://github.com/pricing",
+        "text": "Pricing"
+      },
+      {
+        "href": "https://docs.github.com/search-github/github-code-search/understanding-github-code-search-syntax",
+        "text": "Search syntax tips"
+      },
+      {
+        "href": "https://www.github.com/github-copilot/pro",
+        "text": "Try GitHub Copilot"
+      },
+      {
+        "href": "https://www.github.com/features/copilot",
+        "text": "Explore GitHub Copilot"
+      },
+      {
+        "href": "https://www.github.com/customer-stories/duolingo",
+        "text": "Read customer story"
+      },
+      {
+        "href": "https://www.gartner.com/doc/reprints?id=1-2IKO4MPE&ct=240819&st=sb",
+        "text": "Read industry report"
+      },
+      {
+        "href": "https://www.github.com/features/actions",
+        "text": "Discover GitHub Actions"
+      },
+      {
+        "href": "https://www.github.com/features/codespaces",
+        "text": "Check out GitHub Codespaces"
+      },
+      {
+        "href": "https://www.github.com/mobile",
+        "text": "Download GitHub Mobile"
+      },
+      {
+        "href": "https://www.github.com/marketplace",
+        "text": "Visit GitHub Marketplace"
+      },
+      {
+        "href": "https://www.github.com/security/advanced-security",
+        "text": "Explore GitHub Advanced Security"
+      },
+      {
+        "href": "https://www.github.com/security/advanced-security/software-supply-chain",
+        "text": "Learn about Dependabot"
+      },
+      {
+        "href": "https://www.github.com/security/advanced-security/secret-protection",
+        "text": "Read about secret scanning"
+      },
+      {
+        "href": "https://docs.github.com/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql#about-codeql",
+        "text": "all supported languages with Copilot Autofix"
+      },
+      {
+        "href": "https://www.github.com/features/issues",
+        "text": "Jump into GitHub Projects"
+      },
+      {
+        "href": "https://www.github.com/features/discussions",
+        "text": "Discover GitHub Discussions"
+      },
+      {
+        "href": "https://www.github.com/features/code-review",
+        "text": "Learn about code review"
+      },
+      {
+        "href": "https://www.github.com/customer-stories/figma",
+        "text": "TechnologyFigma streamlines development and strengthens securityRead customer story"
+      },
+      {
+        "href": "https://www.github.com/customer-stories/mercedes-benz",
+        "text": "AutomotiveMercedes-Benz standardizes source code and automates onboardingRead customer story"
+      },
+      {
+        "href": "https://www.github.com/customer-stories/mercado-libre",
+        "text": "Financial servicesMercado Libre cuts coding time by 50%Read customer story"
+      },
+      {
+        "href": "https://www.github.com/customer-stories",
+        "text": "Explore customer stories"
+      },
+      {
+        "href": "https://www.github.com/features",
+        "text": "Features"
+      },
+      {
+        "href": "https://www.github.com/features/ai",
+        "text": "AI"
+      },
+      {
+        "href": "https://www.github.com/security",
+        "text": "Security"
+      },
+      {
+        "href": "https://www.github.com/pricing",
+        "text": "Pricing"
+      },
+      {
+        "href": "https://www.github.com/team",
+        "text": "Team"
+      },
+      {
+        "href": "https://github.com/github/roadmap",
+        "text": "Roadmap"
+      },
+      {
+        "href": "https://resources.github.com/devops/tools/compare",
+        "text": "Compare GitHub"
+      },
+      {
+        "href": "https://docs.github.com/get-started/exploring-integrations/about-building-integrations",
+        "text": "Developer API"
+      },
+      {
+        "href": "https://github.com/edu",
+        "text": "Education"
+      },
+      {
+        "href": "https://cli.github.com/",
+        "text": "GitHub CLI"
+      },
+      {
+        "href": "https://desktop.github.com/",
+        "text": "GitHub Desktop"
+      },
+      {
+        "href": "https://github.com/mobile",
+        "text": "GitHub Mobile"
+      },
+      {
+        "href": "https://github.community/",
+        "text": "Community Forum"
+      },
+      {
+        "href": "https://services.github.com/",
+        "text": "Professional Services"
+      },
+      {
+        "href": "https://www.github.com/enterprise/premium-support",
+        "text": "Premium Support"
+      },
+      {
+        "href": "https://www.githubstatus.com/",
+        "text": "Status"
+      },
+      {
+        "href": "https://support.github.com/?tags=dotcom-footer",
+        "text": "Contact GitHub"
+      },
+      {
+        "href": "https://github.com/about",
+        "text": "About"
+      },
+      {
+        "href": "https://www.github.com/customer-stories?type=enterprise",
+        "text": "Customer stories"
+      },
+      {
+        "href": "https://www.github.com/readme",
+        "text": "The ReadME Project"
+      },
+      {
+        "href": "https://github.careers/",
+        "text": "Careers"
+      },
+      {
+        "href": "https://www.github.com/newsroom",
+        "text": "Newsroom"
+      },
+      {
+        "href": "https://www.github.com/about/diversity",
+        "text": "Inclusion"
+      },
+      {
+        "href": "https://socialimpact.github.com/",
+        "text": "Social Impact"
+      },
+      {
+        "href": "https://shop.github.com/",
+        "text": "Shop"
+      },
+      {
+        "href": "https://docs.github.com/site-policy/github-terms/github-terms-of-service",
+        "text": "Terms"
+      },
+      {
+        "href": "https://github.com/github/site-policy/pull/582",
+        "text": "(Updated 02/2024)02/2024"
+      },
+      {
+        "href": "https://www.github.com/git-guides",
+        "text": "What is Git?"
+      },
+      {
+        "href": "https://www.tiktok.com/@github",
+        "text": "GitHub on TikTok"
+      },
+      {
+        "href": "https://www.twitch.tv/github",
+        "text": "GitHub on Twitch"
+      },
+      {
+        "href": "https://github.com/github",
+        "text": "GitHub’s organization on GitHub"
+      }
+    ],
+    "socialMediaLinks": [
+      "https://www.linkedin.com/company/github",
+      "https://www.instagram.com/github",
+      "https://www.youtube.com/github",
+      "https://x.com/github"
+    ],
+    "metaTitle": "GitHub · Build and ship software on a single, collaborative platform · GitHub",
+    "finalURL": "https://www.github.com"
+  }
+}

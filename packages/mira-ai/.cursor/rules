@@ -1,0 +1,54 @@
+# Mira AI Core Library Rules
+
+## Architecture: Agentic AI System
+
+The Mira AI core uses 5 specialized AI agents orchestrated in sequence:
+
+### 1. Discovery Agent
+
+- Initial website analysis and page discovery
+- Extracts company data and finds internal pages
+- Returns: `{ dataPoints, internalPages, socialMediaLinks, finalURL }`
+
+### 2. Internal Pages Agent
+
+- Deep analysis of discovered internal pages
+- Scrapes About Us, Careers, Team pages
+- Returns: `{ dataPoints }` with enriched information
+
+### 3. LinkedIn Agent
+
+- LinkedIn company profile analysis
+- Extracts employee count, industry, description
+- Returns: `{ dataPoints }` with LinkedIn insights
+
+### 4. Google Search Agent
+
+- Additional web research and news analysis
+- Analyzes search results for company mentions
+- Returns: `{ dataPoints }` with web intelligence
+
+### 5. Company Analysis Agent
+
+- Final synthesis considering company criteria
+- Generates executive summary
+- Returns: Final enriched company profile
+
+## Library Development
+
+- Export everything through src/index.ts
+- Use proper TypeScript types for all exports
+- Handle errors with descriptive messages
+
+## API Design
+
+- Accept config objects, not individual parameters
+- Return structured results with consistent shape
+- Use Zod schemas for validation
+- Set process.env in researchCompany, don't pass config through every function
+
+## Testing
+
+- Test all public functions
+- Use .env.test for test API keys
+- Mock external services in tests

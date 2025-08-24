@@ -1,0 +1,26 @@
+# Mira Frontend Rules
+
+## Next.js
+
+- Use App Router, not Pages Router
+- Server components by default, client only when needed
+- Import from 'mira-ai' for server code, 'mira-ai/types' for client
+- Use proper error boundaries
+
+## React
+
+- Functional components only
+- Use hooks properly (deps arrays, cleanup)
+- Keep components focused on single responsibility
+
+## API Routes
+
+- Use proper HTTP status codes
+- Handle errors gracefully
+- Use Server-Sent Events for progress updates
+
+## UI
+
+- Use shadcn/ui components
+- Follow existing design patterns
+- Keep accessibility in mind
