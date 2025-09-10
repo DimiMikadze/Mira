@@ -161,7 +161,6 @@ export const runDiscoveryAgent = async (
           includeGoogleQueries,
           includeCrawl
         );
-        console.log('discoveryPagesAndQueriesPrompt', discoveryPagesAndQueriesPrompt);
 
         discoveryPagesAndQueriesResponse = await run(discoveryPagesAndQueriesAgent, discoveryPagesAndQueriesPrompt);
       }

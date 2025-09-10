@@ -139,6 +139,13 @@ export const createProgressReporter = (onProgress?: ProgressCallback, sources?: 
   },
 
   /**
+   * Report company analysis is skipped
+   */
+  reportCompanyAnalysisSkipped: () => {
+    onProgress?.(PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, 'Company analysis disabled - skipping');
+  },
+
+  /**
    * Report company analysis completion
    */
   reportCompanyAnalysisCompleted: () => {

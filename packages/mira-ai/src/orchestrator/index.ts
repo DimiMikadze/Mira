@@ -113,7 +113,8 @@ const tryEarlyTermination = async (
   startTime: number,
   progressReporter: any,
   stepName: string,
-  companyCriteria?: string
+  companyCriteria?: string,
+  analysisEnabled?: boolean
 ): Promise<EnrichmentResult | null> => {
   if (shouldTerminateEarly(baseDataPoints, dataPoints, minimumConfidenceThreshold)) {
     const stats = getCompletionStats(baseDataPoints, dataPoints, minimumConfidenceThreshold);
@@ -124,14 +125,20 @@ const tryEarlyTermination = async (
     );
     progressReporter.reportEarlyTermination?.(stats.completed, stats.total, stats.averageConfidence);
 
-    // Still run company analysis even with early termination
+    // Run company analysis based on configuration
+    let companyAnalysis: CompanyAnalysis | undefined;
     const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
-    progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
-
-    const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
-    const companyAnalysis = await runCompanyAnalysisStep({ companyCriteria, enrichedCompany });
-    if (companyAnalysis) {
-      progressReporter.reportCompanyAnalysisCompleted();
+    const shouldRunAnalysis = hasCriteria || analysisEnabled;
+    
+    if (shouldRunAnalysis) {
+      progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
+      const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
+      companyAnalysis = await runCompanyAnalysisStep({ companyCriteria, enrichedCompany });
+      if (companyAnalysis) {
+        progressReporter.reportCompanyAnalysisCompleted();
+      }
+    } else {
+      progressReporter.reportCompanyAnalysisSkipped();
     }
 
     return createFinalResult(
@@ -187,6 +194,7 @@ export const researchCompany = async (
     crawl: enrichmentConfig?.sources?.crawl ?? false,
     google: enrichmentConfig?.sources?.google ?? false,
     linkedin: enrichmentConfig?.sources?.linkedin ?? false,
+    analysis: enrichmentConfig?.sources?.analysis ?? false,
   };
   const progressReporter = createProgressReporter(onProgress, sourcesConfig);
   const sourcesManager = createSourcesManager();
@@ -214,7 +222,8 @@ export const researchCompany = async (
     startTime,
     progressReporter,
     'discovery',
-    companyCriteria
+    companyCriteria,
+    sourcesConfig.analysis
   );
   if (discoveryCompletion) return discoveryCompletion;
 
@@ -270,7 +279,8 @@ export const researchCompany = async (
     startTime,
     progressReporter,
     'internal pages',
-    companyCriteria
+    companyCriteria,
+    sourcesConfig.analysis
   );
   if (internalPagesCompletion) return internalPagesCompletion;
 
@@ -321,7 +331,8 @@ export const researchCompany = async (
     startTime,
     progressReporter,
     'LinkedIn analysis',
-    companyCriteria
+    companyCriteria,
+    sourcesConfig.analysis
   );
   if (linkedInCompletion) return linkedInCompletion;
 
@@ -357,13 +368,19 @@ export const researchCompany = async (
   progressReporter.reportGoogleSearchCompleted(finalDataPointsCount);
 
   // Step 5: Company Analysis Agent
+  let companyAnalysis: CompanyAnalysis | undefined;
   const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
-  progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
-
-  const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
-  const companyAnalysis = await runCompanyAnalysisStep({ companyCriteria, enrichedCompany });
-  if (companyAnalysis) {
-    progressReporter.reportCompanyAnalysisCompleted();
+  const shouldRunAnalysis = hasCriteria || sourcesConfig.analysis;
+  
+  if (shouldRunAnalysis) {
+    progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
+    const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
+    companyAnalysis = await runCompanyAnalysisStep({ companyCriteria, enrichedCompany });
+    if (companyAnalysis) {
+      progressReporter.reportCompanyAnalysisCompleted();
+    }
+  } else {
+    progressReporter.reportCompanyAnalysisSkipped();
   }
 
   // Step 6: Final result compilation

@@ -207,6 +207,7 @@ export async function POST(request: NextRequest) {
               crawl: sources?.crawl,
               linkedin: sources?.linkedin,
               google: sources?.google,
+              analysis: sources?.analysis,
             },
           };
 

@@ -109,6 +109,7 @@ export interface EnrichmentSources {
   crawl?: boolean;
   google?: boolean;
   linkedin?: boolean;
+  analysis?: boolean;
 }
 
 export interface EnrichmentConfig {

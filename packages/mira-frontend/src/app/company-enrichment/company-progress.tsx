@@ -15,6 +15,8 @@ interface CompanyProgressProps {
   stepMessages?: Record<string, string>;
   /** Source configuration to determine which steps to show */
   sources?: EnrichmentSources;
+  /** Company criteria to determine if analysis should run */
+  companyCriteria?: string;
 }
 
 /**
@@ -25,22 +27,45 @@ const ALL_STEPS = [
   { event: PROGRESS_EVENTS.INTERNAL_PAGES_STARTED, sourceKey: 'crawl' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.LINKEDIN_STARTED, sourceKey: 'linkedin' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED, sourceKey: 'google' as keyof EnrichmentSources },
-  { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, required: true }, // Always runs - final analysis
+  { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, sourceKey: 'analysis' as keyof EnrichmentSources }, // Conditional based on analysis setting or company criteria
 ] as const;
 
 /**
- * Build step order based on enabled sources
+ * Build step order based on enabled sources and company criteria
  */
-const buildStepOrder = (sources?: EnrichmentSources) => {
+const buildStepOrder = (sources?: EnrichmentSources, companyCriteria?: string) => {
   if (!sources) {
-    // Default to only required steps (discovery and analysis) if no sources config provided
-    return ALL_STEPS.filter((step) => 'required' in step && step.required).map((step) => step.event);
+    // Default to discovery only if no sources config provided and no criteria
+    const steps = ALL_STEPS.filter((step) => 'required' in step && step.required);
+    // Add analysis if we have company criteria (even without explicit sources config)
+    if (companyCriteria && companyCriteria.trim()) {
+      const analysisStep = ALL_STEPS.find((step) => step.event === PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED);
+      if (analysisStep && !steps.includes(analysisStep)) {
+        steps.push(analysisStep);
+      }
+    }
+    return steps.map((step) => step.event);
   }
 
-  return ALL_STEPS.filter(
-    (step) =>
-      ('required' in step && step.required) || ('sourceKey' in step && step.sourceKey && sources[step.sourceKey])
-  ).map((step) => step.event);
+  const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
+
+  return ALL_STEPS.filter((step) => {
+    // Always include required steps
+    if ('required' in step && step.required) {
+      return true;
+    }
+
+    // For optional steps, check if their source is enabled
+    if ('sourceKey' in step && step.sourceKey) {
+      // Special handling for company analysis: run if analysis is enabled OR if we have criteria
+      if (step.sourceKey === 'analysis') {
+        return sources[step.sourceKey] || hasCriteria;
+      }
+      return sources[step.sourceKey];
+    }
+
+    return false;
+  }).map((step) => step.event);
 };
 
 /** Type representing valid step events (subset of all progress events) */
@@ -80,9 +105,15 @@ const isStepEvent = (eventType: ProgressEventType, stepOrder: ProgressEventType[
  *
  * @param props - Component props containing progress information
  */
-const CompanyProgress = ({ progressMessage, currentEventType, stepMessages = {}, sources }: CompanyProgressProps) => {
-  // Build dynamic step order based on enabled sources
-  const stepOrder = buildStepOrder(sources);
+const CompanyProgress = ({
+  progressMessage,
+  currentEventType,
+  stepMessages = {},
+  sources,
+  companyCriteria,
+}: CompanyProgressProps) => {
+  // Build dynamic step order based on enabled sources and company criteria
+  const stepOrder = buildStepOrder(sources, companyCriteria);
 
   /**
    * Calculate the current step index based on the event type
