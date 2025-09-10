@@ -79,7 +79,10 @@ const createFinalResult = (
   progressReporter: any,
   companyAnalysis?: CompanyAnalysis
 ): EnrichmentResult => {
-  const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
+  const enrichedCompany: EnrichedCompany = {
+    ...baseDataPoints,
+    socialMediaLinks: discoveryResult.socialMediaLinks,
+  };
   const sourceUrls = sourcesManager.getSources(discoveryResult.finalURL);
   const executionTime = getExecutionTime(startTime);
 

@@ -35,7 +35,8 @@ export const SocialMediaLinksSchema = z
   .optional();
 
 export interface EnrichedCompany {
-  [key: string]: DataPoint;
+  [key: string]: DataPoint | string[] | undefined;
+  socialMediaLinks?: string[];
 }
 
 export const EnrichedCompanySchema = z.record(z.string(), DataPointSchema);

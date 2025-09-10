@@ -5,14 +5,25 @@
  */
 import { jest } from '@jest/globals';
 import { runDiscoveryAgent } from '../../src/agents/discovery-agent';
+import type { CustomDataPoint } from '../../src/types/company';
 
 const TEST_URL = 'https://www.github.com';
+
+// Sample data points configuration for testing
+const TEST_DATA_POINTS: CustomDataPoint[] = [
+  { name: 'name', description: 'Company name' },
+  { name: 'description', description: 'Company description' },
+  { name: 'industry', description: 'Industry or sector' },
+  { name: 'headquarters', description: 'Company headquarters location' },
+  { name: 'foundedYear', description: 'Year the company was founded' },
+  { name: 'totalFunding', description: 'Total funding raised' },
+];
 
 jest.setTimeout(60000);
 
 it('should extract company data points and discover internal pages from website', async () => {
-  // Test agent with real website URL
-  const result = await runDiscoveryAgent(TEST_URL);
+  // Test agent with real website URL and data points
+  const result = await runDiscoveryAgent(TEST_URL, TEST_DATA_POINTS, true);
 
   console.info('🔍 Agent result:', { success: result.success, error: result.error });
 

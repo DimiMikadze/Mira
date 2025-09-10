@@ -30,7 +30,6 @@ const TEST_ENRICHED_COMPANY: EnrichedCompany = {
     confidenceScore: 4,
     source: 'https://www.github.com/about',
   },
-  socialMediaLinks: ['https://linkedin.com/company/github'],
 };
 
 const TEST_COMPANY_CRITERIA = 'B2B SaaS companies with 500+ employees looking for data analytics solutions';

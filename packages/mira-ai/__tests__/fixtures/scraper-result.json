@@ -4,6 +4,10 @@
     "content": "Build and ship software on a single, collaborative platformJoin the world’s most widely adopted AI-powered developer platform.Enter your emailSign up for GitHubTry GitHub CopilotGitHub featuresA demonstration animation of a code editor using GitHub Copilot Chat, where the user requests GitHub Copilot to refactor duplicated logic and extract it into a reusable function for a given code snippet.CodePlanCollaborateAutomateSecureCodeCode quickly and more securely with GitHub Copilot embedded throughout your workflows.GitHub customersAccelerate performanceWith GitHub Copilot embedded throughout the platform, you can simplify your toolchain, automate tasks, and improve the developer experience.A Copilot chat window with the 'Ask' mode enabled. The user switches from 'Ask' mode to 'Agent' mode from a dropdown , then sends the prompt 'Update the website to allow searching for running races by name.' Copilot analyzes the codebase, then explains the required edits for three files before generating them. Copilot then confirms completion and summarizes the implemented changes for the new functionality allowing users to search races by name and view paginated, filtered results.Work 55% faster. Increase productivity with AI-powered coding assistance, including code completion, chat, and more.Explore GitHub CopilotDuolingo boosts developer speed by 25% with GitHub CopilotRead customer story2024 Gartner® Magic Quadrant™ for AI Code AssistantsRead industry reportAutomate any workflowOptimize your process with simple and secured CI/CD.Discover GitHub ActionsGet up and running in secondsStart building instantly with a comprehensive dev environment in the cloud.Check out GitHub CodespacesBuild on the goManage projects and chat with GitHub Copilot from anywhere.Download GitHub MobileIntegrate the tools you loveSync with 17,000+ integrations and a growing library of Copilot Extensions.Visit GitHub MarketplaceBuilt-in application security where found means fixedUse AI to find and fix vulnerabilities—freeing your teams to ship more secure software faster.Apply fixes in seconds. Spend less time fixing vulnerabilities and more time building features with Copilot Autofix.Explore GitHub Advanced SecuritySolve security debt. Leverage AI-assisted security campaigns to reduce application vulnerabilities and zero-day attacks.Discover security campaignsDependencies you can depend on. Update vulnerable dependencies with supported fixes for breaking changes.Learn about DependabotYour secrets, your business: protected. Detect, prevent, and remediate leaked secrets across your organization.Read about secret scanning7x faster vulnerability fixes with GitHub90% coverage of alert types in all supported languages with Copilot AutofixWork together, achieve moreCollaborate with your teams, use management tools that sync with your projects, and code from anywhere—all on a single, integrated platform.Your workflows, your way. Plan effectively with an adaptable spreadsheet that syncs with your work.Jump into GitHub Projects“It helps us onboard new software engineers and get them productive right away. We have all our source code, issues, and pull requests in one place... GitHub is a complete platform that frees us from menial tasks and enables us to do our best work.Fabian FaulhaberApplication manager at Mercedes-BenzKeep track of your tasksCreate issues and manage projects with tools that adapt to your code.Explore GitHub IssuesShare ideas and ask questionsCreate space for open-ended conversations alongside your project.Discover GitHub DiscussionsReview code changes togetherCreate review processes that improve code quality and fit neatly into your workflow.Learn about code reviewFund open source projectsBecome an open source partner and support the tools and libraries that power your work.Dive into GitHub SponsorsFrom startups to enterprises, GitHub scales with teams of any size in any industry.By industryBy sizeBy use caseBy industryTechnologyFigma streamlines development and strengthens securityRead customer storyAutomotiveMercedes-Benz standardizes source code and automates onboardingRead customer storyFinancial servicesMercado Libre cuts coding time by 50%Read customer storyExplore customer storiesView all solutionsMillions of developers and businesses call GitHub homeWhether you’re scaling your development process or just learning how to code, GitHub is where you belong. Join the world’s most widely adopted AI-powered developer platform to build the technologies that redefine what’s possible.Enter your emailSign up for GitHubTry GitHub Copilot",
     "links": [
       {
+        "href": "https://githubuniverse.com/?utm_source=github&utm_medium=banner&utm_campaign=2025globalbanner1",
+        "text": "Register now"
+      },
+      {
         "href": "https://github.com/features/copilot",
         "text": "GitHub Copilot Write better code with AI"
       },
@@ -48,10 +52,6 @@
         "text": "Why GitHub"
       },
       {
-        "href": "https://github.com/features",
-        "text": "All features"
-      },
-      {
         "href": "https://docs.github.com/",
         "text": "Documentation"
       },
@@ -62,6 +62,14 @@
       {
         "href": "https://github.blog/",
         "text": "Blog"
+      },
+      {
+        "href": "https://github.com/marketplace",
+        "text": "GitHub Marketplace"
+      },
+      {
+        "href": "https://github.com/features",
+        "text": "View all features"
       },
       {
         "href": "https://github.com/enterprise",
@@ -144,7 +152,7 @@
         "text": "Learning Pathways"
       },
       {
-        "href": "https://resources.github.com/",
+        "href": "https://github.com/resources/events",
         "text": "Events & Webinars"
       },
       {
@@ -298,6 +306,10 @@
       {
         "href": "https://www.github.com/team",
         "text": "Team"
+      },
+      {
+        "href": "https://resources.github.com/",
+        "text": "Resources"
       },
       {
         "href": "https://github.com/github/roadmap",
