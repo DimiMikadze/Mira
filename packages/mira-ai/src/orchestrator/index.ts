@@ -2,7 +2,7 @@ import { getExecutionTime } from '../utils.js';
 import type { EnrichedCompany, EnrichmentConfig } from '../types/company.js';
 import type { CompanyAnalysis } from '../types/company-analysis.js';
 import { createProgressReporter, countMeaningfulDataPoints, type ProgressCallback } from './progress-manager.js';
-import { mergeDataPoints, countExtractedDataPoints } from './data-merger.js';
+import { mergeDataPoints, countExtractedDataPoints, getDataPointsNeedingImprovement } from './data-merger.js';
 import { createSourcesManager, extractInternalPageUrls } from './sources-manager.js';
 import { shouldTerminateEarly, getCompletionStats } from './early-termination.js';
 import {
@@ -196,7 +196,7 @@ export const researchCompany = async (
 
   // Step 1: Discovery Agent
   progressReporter.reportDiscoveryStarted();
-  const discoveryResult = await runDiscoveryStep(url, dataPoints, sourcesConfig.google);
+  const discoveryResult = await runDiscoveryStep(url, dataPoints, sourcesConfig.google, sourcesConfig.crawl);
 
   const discoveryDataPointsCount = countMeaningfulDataPoints(discoveryResult.dataPoints);
   const internalPagesCount = Object.keys(discoveryResult.internalPages).length;
@@ -227,7 +227,27 @@ export const researchCompany = async (
 
   if (sourcesConfig.crawl) {
     progressReporter.reportInternalPagesStarted(internalPagesCount);
-    internalPagesDataPoints = await runInternalPagesStep(discoveryResult, dataPoints);
+
+    // Only process data points that need improvement (missing or low confidence)
+    const dataPointsNeeded = getDataPointsNeedingImprovement(
+      discoveryResult.dataPoints,
+      dataPoints.map((dp) => dp.name),
+      minimumConfidenceThreshold
+    );
+    const filteredDataPoints = dataPoints.filter((dp) => dataPointsNeeded.includes(dp.name));
+
+    if (filteredDataPoints.length === 0) {
+      console.info('[Orchestrator] All data points have high confidence, skipping internal pages crawling');
+      internalPagesDataPoints = {};
+    } else {
+      console.info(
+        `[Orchestrator] Processing ${filteredDataPoints.length} data points in internal pages: ${dataPointsNeeded.join(
+          ', '
+        )}`
+      );
+      internalPagesDataPoints = await runInternalPagesStep(discoveryResult, filteredDataPoints);
+    }
+
     internalPagesDataPointsCount = countMeaningfulDataPoints(internalPagesDataPoints);
 
     // Add internal page URLs to sources

@@ -77,7 +77,8 @@ const toDataPoints = (
 export const runDiscoveryAgent = async (
   url: string,
   requestedDataPoints: CustomDataPoint[],
-  includeGoogleQueries: boolean = false
+  includeGoogleQueries: boolean = false,
+  includeCrawl: boolean = false
 ) => {
   try {
     console.info(`[DiscoveryAgent] Discovering website structure and content: ${url}`);
@@ -106,47 +107,75 @@ export const runDiscoveryAgent = async (
     const companyName = metaTitle || finalURL.split('//')[1]?.split('/')[0] || 'Unknown Company';
     const domain = finalURL.split('//')[1]?.split('/')[0] || '';
 
-    // Initialize both specialized discovery agents
+    // Initialize discovery data points agent (always runs)
     const discoveryDataPointsAgent = createDiscoveryDataPointsAgent(requestedDataPoints);
-    const discoveryPagesAndQueriesAgent = createDiscoveryPagesAndQueriesAgent();
 
-    // Build prompts with scraped content for each agent
+    // Build prompt for data extraction agent
     const discoveryDataPointsPrompt = createDiscoveryDataPointsPrompt(
       dataPointDescriptions,
       finalURL,
       content,
       metaTitle
     );
-    const discoveryPagesAndQueriesPrompt = createDiscoveryPagesAndQueriesPrompt(
-      finalURL,
-      companyName,
-      domain,
-      links,
-      requestedDataPoints,
-      includeGoogleQueries
-    );
 
-    console.info(`[DiscoveryAgent] Running parallel specialized agents...`);
+    console.info(`[DiscoveryAgent] Running data extraction agent...`);
 
-    // Execute both agents concurrently for faster processing
-    const [discoveryDataPointsResponse, discoveryPagesAndQueriesResponse] = await Promise.all([
-      run(discoveryDataPointsAgent, discoveryDataPointsPrompt),
-      run(discoveryPagesAndQueriesAgent, discoveryPagesAndQueriesPrompt),
-    ]);
+    // Step 1: Always run data extraction agent first
+    const discoveryDataPointsResponse = await run(discoveryDataPointsAgent, discoveryDataPointsPrompt);
 
-    // Ensure both agents returned valid outputs
+    // Ensure data points agent returned valid output
     if (!discoveryDataPointsResponse?.finalOutput) {
       return { success: false, error: 'No output received from discovery data points agent' };
     }
 
-    if (!discoveryPagesAndQueriesResponse?.finalOutput) {
-      return { success: false, error: 'No output received from discovery pages and queries agent' };
+    const dataPoints = toDataPoints(discoveryDataPointsResponse.finalOutput, finalURL);
+
+    // Step 2: Only run pages and queries agent if crawl or Google search is enabled
+    let discoveryPagesAndQueriesResponse = null;
+    if (includeCrawl || includeGoogleQueries) {
+      // Filter to only data points that weren't successfully extracted or have low confidence
+      const minimumConfidenceThreshold = 4;
+      const neededDataPoints = requestedDataPoints.filter((dp) => {
+        const existing = dataPoints[dp.name];
+        return !existing || existing.confidenceScore < minimumConfidenceThreshold;
+      });
+
+      if (neededDataPoints.length === 0) {
+        console.info(
+          `[DiscoveryAgent] All data points extracted with high confidence from landing page, skipping pages/queries generation`
+        );
+      } else {
+        console.info(
+          `[DiscoveryAgent] Generating pages/queries for ${neededDataPoints.length} data points: ${neededDataPoints
+            .map((dp) => dp.name)
+            .join(', ')}`
+        );
+
+        const discoveryPagesAndQueriesAgent = createDiscoveryPagesAndQueriesAgent();
+        const discoveryPagesAndQueriesPrompt = createDiscoveryPagesAndQueriesPrompt(
+          finalURL,
+          companyName,
+          domain,
+          links,
+          neededDataPoints, // Only pass data points that need improvement
+          includeGoogleQueries,
+          includeCrawl
+        );
+        console.log('discoveryPagesAndQueriesPrompt', discoveryPagesAndQueriesPrompt);
+
+        discoveryPagesAndQueriesResponse = await run(discoveryPagesAndQueriesAgent, discoveryPagesAndQueriesPrompt);
+      }
     }
 
-    const dataPoints = toDataPoints(discoveryDataPointsResponse.finalOutput, finalURL);
-    const pagesAndQueries = discoveryPagesAndQueriesResponse.finalOutput;
-    const internalPages = pagesAndQueries.internalPages;
-    const googleQueries = pagesAndQueries.googleQueries ?? {};
+    // Handle pages and queries response (may be null if neither crawl nor Google search enabled)
+    let internalPages = {};
+    let googleQueries = {};
+
+    if (discoveryPagesAndQueriesResponse?.finalOutput) {
+      const pagesAndQueries = discoveryPagesAndQueriesResponse.finalOutput;
+      internalPages = pagesAndQueries.internalPages || {};
+      googleQueries = pagesAndQueries.googleQueries || {};
+    }
 
     console.info(
       `[DiscoveryAgent] Success: ${Object.keys(dataPoints).length} data points, ${

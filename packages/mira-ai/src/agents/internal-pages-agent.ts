@@ -83,7 +83,9 @@ const buildDataPointDescriptions = (dataPoints: CustomDataPoint[], keys: string[
 const extractFromInternalPage = async (
   pageType: InternalPageType,
   pageUrl: string,
-  dataPoints: CustomDataPoint[]
+  dataPoints: CustomDataPoint[],
+  baseDataPoints: Record<string, DataPoint | undefined>,
+  minimumConfidenceThreshold: number = 4
 ): Promise<PageExtractionResult | null> => {
   try {
     console.info(`[InternalPagesAgent][extract] start ${pageType} → ${pageUrl}`);
@@ -99,9 +101,25 @@ const extractFromInternalPage = async (
       `[InternalPagesAgent][extract] scraped ${pageType} (${pageUrl}) contentLen=${content.length.toLocaleString()}`
     );
 
-    // Use all available data points for each page - let the LLM decide what's relevant
-    const keys = dataPoints.map((dp) => dp.name);
-    const descriptions = buildDataPointDescriptions(dataPoints, keys);
+    // Filter to only data points that need improvement (missing or low confidence)
+    const neededDataPoints = dataPoints.filter((dp) => {
+      const existing = baseDataPoints[dp.name];
+      return !existing || existing.confidenceScore < minimumConfidenceThreshold;
+    });
+
+    if (neededDataPoints.length === 0) {
+      console.info(
+        `[InternalPagesAgent][extract] ${pageType} - all data points already have high confidence, skipping`
+      );
+      return { pageType, extracted: {}, sourceUrl: pageUrl };
+    }
+
+    const keys = neededDataPoints.map((dp) => dp.name);
+    const descriptions = buildDataPointDescriptions(neededDataPoints, keys);
+
+    console.info(
+      `[InternalPagesAgent][extract] ${pageType} - processing ${keys.length} data points: ${keys.join(', ')}`
+    );
     const agent = createInternalPageAgent(pageType, keys);
 
     const prompt = createInternalPagePrompt(pageType, keys, descriptions, pageUrl, content);
@@ -149,7 +167,7 @@ export const runInternalPagesAgent = async (input: DiscoveryOutput, dataPoints: 
 
     // Process all internal pages concurrently
     const results = await Promise.all(
-      targets.map(({ pageType, url }) => extractFromInternalPage(pageType, url, dataPoints))
+      targets.map(({ pageType, url }) => extractFromInternalPage(pageType, url, dataPoints, baseDataPoints))
     );
 
     // Merge results with discovery data, preferring higher confidence scores

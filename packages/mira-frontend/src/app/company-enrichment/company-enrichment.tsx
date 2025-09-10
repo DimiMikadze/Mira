@@ -30,9 +30,9 @@ const CompanyEnrichment = () => {
   const [currentEventType, setCurrentEventType] = useState<ProgressEventType | undefined>();
   // Default sources configuration - can be made configurable later
   const [sourcesConfig] = useState<EnrichmentSources>({
-    crawl: false,
-    linkedin: false,
-    google: true,
+    crawl: true,
+    linkedin: true,
+    google: false,
   });
   const [stepMessages, setStepMessages] = useState<Record<string, string>>({});
   const [executionTime, setExecutionTime] = useState('');

@@ -38,7 +38,7 @@ describe('Orchestrator', () => {
       },
     });
 
-    console.log(`✅ ${countDataPoints(result.enrichedCompany)} data points in ${result.executionTime}`);
+    console.info(`✅ ${countDataPoints(result.enrichedCompany)} data points in ${result.executionTime}`);
 
     expect(result.enrichedCompany.name).toBeDefined();
     expect(result.enrichedCompany.socialMediaLinks).toBeDefined();
@@ -59,7 +59,7 @@ describe('Orchestrator', () => {
       minimumConfidenceThreshold: 3, // Low threshold to trigger early termination
     });
 
-    console.log(`✅ Early termination: ${result.executionTime} (should be fast if terminated early)`);
+    console.info(`✅ Early termination: ${result.executionTime} (should be fast if terminated early)`);
 
     expect(result.enrichedCompany.name).toBeDefined();
     expect(parseFloat(result.executionTime)).toBeLessThan(60); // Should complete in under 1 minute

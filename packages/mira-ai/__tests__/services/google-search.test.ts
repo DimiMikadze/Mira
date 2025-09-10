@@ -65,5 +65,5 @@ it('should perform Google search and return structured results', async () => {
     )
   );
 
-  console.log(`✅ Google search test passed. Result saved to: ${fixturePath}`);
+  console.info(`✅ Google search test passed. Result saved to: ${fixturePath}`);
 });

@@ -55,11 +55,12 @@ export interface CompanyAnalysisOptions {
 export const runDiscoveryStep = async (
   url: string,
   dataPoints: CustomDataPoint[],
-  includeGoogleQueries: boolean = false
+  includeGoogleQueries: boolean = false,
+  includeCrawl: boolean = false
 ): Promise<DiscoveryStepResult> => {
   console.info(`[Orchestrator] Starting website discovery with AI agent for: ${url}`);
 
-  const discoveryAgentResult = await runDiscoveryAgent(url, dataPoints, includeGoogleQueries);
+  const discoveryAgentResult = await runDiscoveryAgent(url, dataPoints, includeGoogleQueries, includeCrawl);
 
   if (!discoveryAgentResult.success) {
     throw new Error(`Website discovery agent failed: ${discoveryAgentResult.error}`);

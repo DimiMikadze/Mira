@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Company Enrichment API Endpoint
  *
@@ -202,9 +204,9 @@ export async function POST(request: NextRequest) {
               },
             ],
             sources: {
-              crawl: sources?.crawl ?? false,
-              linkedin: sources?.linkedin ?? false,
-              google: sources?.google ?? true, // Default to true for backward compatibility
+              crawl: sources?.crawl,
+              linkedin: sources?.linkedin,
+              google: sources?.google,
             },
           };
 

@@ -22,8 +22,8 @@ const TEST_DATA_POINTS: CustomDataPoint[] = [
 jest.setTimeout(60000);
 
 it('should extract company data points and discover internal pages from website', async () => {
-  // Test agent with real website URL and data points (including Google queries)
-  const result = await runDiscoveryAgent(TEST_URL, TEST_DATA_POINTS, true);
+  // Test agent with real website URL and data points (including Google queries and crawl)
+  const result = await runDiscoveryAgent(TEST_URL, TEST_DATA_POINTS, true, true);
 
   console.info('🔍 Agent result:', { success: result.success, error: result.error });
 
@@ -83,10 +83,10 @@ it('should extract company data points and discover internal pages from website'
     Object.entries(result.googleQueries).forEach(([dataPoint, queries]) => {
       // Each data point should map to an array of strings
       expect(Array.isArray(queries)).toBe(true);
-      expect(queries.length).toBeGreaterThan(0);
+      expect((queries as string[]).length).toBeGreaterThan(0);
 
       // Each query should be a non-empty string
-      queries.forEach((query) => {
+      (queries as string[]).forEach((query) => {
         expect(typeof query).toBe('string');
         expect(query.trim().length).toBeGreaterThan(0);
       });

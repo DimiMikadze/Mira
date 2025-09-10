@@ -76,7 +76,7 @@ Strict Rules:
  */
 
 export const DISCOVERY_PAGES_AND_QUERIES_AGENT_INSTRUCTIONS =
-  'Analyze website navigation links to identify relevant internal pages AND generate targeted Google search queries for finding company data points. Return strict JSON only.';
+  'Analyze website navigation links to identify relevant internal pages AND generate targeted Google search queries for finding company data points. CRITICAL: Extract the core company name only (ignore taglines/descriptions) when creating Google queries. Return strict JSON only.';
 
 /**
  * Combined discovery prompt for internal pages and Google search queries
@@ -87,58 +87,14 @@ export const createDiscoveryPagesAndQueriesPrompt = (
   domain: string,
   links: Array<{ href: string; text: string }>,
   dataPoints: CustomDataPoint[],
-  includeGoogleQueries: boolean
+  includeGoogleQueries: boolean,
+  includeCrawl: boolean
 ) => {
   const dataPointsList = dataPoints.map((dp) => `- ${dp.name}: ${dp.description}`).join('\n');
 
-  const googleQueriesSection = includeGoogleQueries
+  // Only include internal pages section if crawling is enabled
+  const internalPagesSection = includeCrawl
     ? `
-## Task 2: Google Search Queries
-Generate effective Google search queries to find information about the data points that might not be available on the company's website.
-
-Guidelines for Google queries:
-1. Create 1-3 targeted search queries per data point
-2. Include the company name "${companyName}" in queries where relevant
-3. Use site exclusions (-site:${domain}) for external information like press coverage
-4. Focus on recent information when applicable (add "recent" or year)
-5. Combine related data points into shared queries when possible
-6. Use OR operators for alternative terms
-7. Keep queries concise and specific
-
-Examples of good queries:
-- For funding: "${companyName} funding recent", "${companyName} investment series"
-- For press: "${companyName} (press OR news OR announcement) -site:${domain}"
-- For partnerships: "${companyName} partnership collaboration"
-- For leadership: "${companyName} CEO founder leadership team"`
-    : '';
-
-  const outputFormat = includeGoogleQueries
-    ? `{
-  "internalPages": {
-    "descriptive_page_name": "exact_url_from_list",
-    "another_descriptive_name": "exact_url_from_list"
-  },
-  "googleQueries": {
-    "dataPointName1": ["query1", "query2"],
-    "dataPointName2": ["query1"],
-    ...
-  }
-}`
-    : `{
-  "internalPages": {
-    "descriptive_page_name": "exact_url_from_list",
-    "another_descriptive_name": "exact_url_from_list"
-  },
-  "googleQueries": null
-}`;
-
-  return `Company: ${companyName}
-Website: ${finalURL}
-Domain: ${domain}
-
-Data Points We Need to Extract:
-${dataPointsList}
-
 ## Task 1: Internal Page Selection
 Analyze the provided website navigation links and select which internal pages would be most relevant for extracting the requested data points.
 You MUST ONLY use the exact URLs from the Available Website Links list below.
@@ -154,16 +110,126 @@ Rules for internal page selection:
 4. Give each selected page a descriptive name that indicates what type of information it contains
 5. Return empty object for internalPages if no relevant internal pages are found
 6. Prioritize pages that are most likely to contain multiple data points
-7. Do not include the main landing page URL in your response${googleQueriesSection}
+7. Do not include the main landing page URL in your response`
+    : '';
+
+  // Only include Google queries section if Google search is enabled
+  const googleQueriesSection = includeGoogleQueries
+    ? `
+## Task ${includeCrawl ? '2' : '1'}: Google Search Queries
+Generate effective Google search queries to find information about the Data Points provided below.
+
+Guidelines for Google queries:
+1. Extract ONLY the core company name from "${companyName}" - ignore taglines, descriptions, and separators (·, |, -, :)
+2. Create efficient queries that target MULTIPLE related data points in a single search
+3. Group related data points together (e.g., leadership + team size, funding + valuation)
+4. Use site exclusions (-site:${domain}) for external information like press coverage
+5. Focus on recent information when applicable (add "recent" or year)
+6. Use OR operators for alternative terms and related concepts
+7. Keep queries concise but comprehensive
+8. Aim for 3-5 total queries maximum that cover all needed data points
+
+Examples of efficient multi-target queries:
+- Company info: "[CompanyName] about company headquarters location team size"
+- Leadership: "[CompanyName] CEO founder leadership team executives"
+- Business: "[CompanyName] funding valuation revenue business model"
+- News/Growth: "[CompanyName] (news OR press OR announcement) recent -site:${domain}"
+- Partnerships: "[CompanyName] partnerships clients customers collaborations"
+
+IMPORTANT: If the company name contains separators or descriptions, extract only the actual company name.`
+    : '';
+
+  // Create output format based on enabled features - always include both fields to match schema
+  let outputFormat = `{
+  "internalPages": {`;
+
+  if (includeCrawl) {
+    outputFormat += `
+    "descriptive_page_name": "exact_url_from_list",
+    "another_descriptive_name": "exact_url_from_list"`;
+  } else {
+    outputFormat += `
+    // Leave empty if crawl is disabled`;
+  }
+
+  outputFormat += `
+  },
+  "googleQueries": `;
+
+  if (includeGoogleQueries) {
+    outputFormat += `{
+    "dataPointName1": ["query1", "query2"],
+    "dataPointName2": ["query1"],
+    ...
+  }`;
+  } else {
+    outputFormat += `null`;
+  }
+
+  outputFormat += '\n}';
+
+  // Build task description based on enabled features
+  let taskDescription =
+    'You are analyzing a company website to help with data extraction and research planning.\n\nYour tasks:';
+
+  if (includeCrawl && includeGoogleQueries) {
+    taskDescription +=
+      '\n1. Identify relevant internal pages for data extraction\n2. Generate targeted Google search queries for external research';
+  } else if (includeCrawl) {
+    taskDescription += '\n1. Identify relevant internal pages for data extraction';
+  } else if (includeGoogleQueries) {
+    taskDescription += '\n1. Generate targeted Google search queries for external research';
+  }
+
+  // Build the main prompt based on enabled features
+  let mainPrompt = `${taskDescription}
+
+Company: ${companyName}
+Website: ${finalURL}
+Domain: ${domain}
+
+Data Points We Need to Extract:
+${dataPointsList}`;
+
+  // Add conditional sections
+  if (internalPagesSection) {
+    mainPrompt += internalPagesSection;
+  }
+
+  if (googleQueriesSection) {
+    mainPrompt += googleQueriesSection;
+  }
+
+  mainPrompt += `
 
 Output Format:
 Return valid JSON in this exact format:
-${outputFormat}
+${outputFormat}`;
 
-Remember: 
+  // Add relevant reminders based on enabled features
+  if (includeCrawl || includeGoogleQueries) {
+    mainPrompt += `
+
+Remember:`;
+
+    if (includeCrawl) {
+      mainPrompt += `
 - For internal pages, you can only use URLs that are explicitly listed in the Available Website Links section above
-- For Google queries, create targeted searches that will find external information about the company
+- Do not make up or construct URLs
+- Focus on pages that are most likely to contain the requested company data points`;
+    }
+
+    if (includeGoogleQueries) {
+      mainPrompt += `
+- For Google queries, extract only the core company name and create efficient multi-target searches
+- Group related data points into single queries when possible`;
+    }
+  }
+
+  mainPrompt += `
 - Return valid JSON only`;
+
+  return mainPrompt;
 };
 
 /**
