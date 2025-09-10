@@ -203,8 +203,8 @@ export async function POST(request: NextRequest) {
             ],
             sources: {
               crawl: true,
-              google: true,
               linkedin: true,
+              google: true,
             },
           };
 

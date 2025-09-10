@@ -148,7 +148,9 @@ export const runInternalPagesAgent = async (input: DiscoveryOutput, dataPoints: 
     );
 
     // Process all internal pages concurrently
-    const results = await Promise.all(targets.map(({ pageType, url }) => extractFromInternalPage(pageType, url, dataPoints)));
+    const results = await Promise.all(
+      targets.map(({ pageType, url }) => extractFromInternalPage(pageType, url, dataPoints))
+    );
 
     // Merge results with discovery data, preferring higher confidence scores
     let merged = { ...baseDataPoints } as Record<string, DataPoint>;

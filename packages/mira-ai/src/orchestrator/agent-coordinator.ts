@@ -106,7 +106,9 @@ export const runLinkedInEnrichmentStep = async (
 }> => {
   const { linkedInUrl, baseDataPoints, confidenceThreshold = 3 } = options;
 
-  const needs = getDataPointsNeedingImprovement(baseDataPoints, [], confidenceThreshold);
+  // Get the data point keys we should look for from the configured data points
+  const dataPointKeys = options.dataPoints.map((dp) => dp.name);
+  const needs = getDataPointsNeedingImprovement(baseDataPoints, dataPointKeys, confidenceThreshold);
   const sourcesUsed = new Set<string>();
 
   if (needs.length === 0) {
@@ -169,10 +171,13 @@ export const runGoogleSearchEnrichmentStep = async (
 }> => {
   const { companyName, domain, baseDataPoints, googleQueries = {}, confidenceThreshold = 3 } = options;
 
-  const needs = getDataPointsNeedingImprovement(baseDataPoints, [], confidenceThreshold);
+  // Get the data point keys we should look for from the configured data points
+  const dataPointKeys = options.dataPoints.map((dp) => dp.name);
+  const needs = getDataPointsNeedingImprovement(baseDataPoints, dataPointKeys, confidenceThreshold);
   const sourcesUsed = new Set<string>();
 
   if (needs.length === 0 || !domain) {
+    console.info('[Orchestrator] Google search: no data points need improvement');
     return { extracted: {}, sourcesUsed };
   }
 

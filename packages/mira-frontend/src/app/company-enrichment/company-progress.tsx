@@ -6,6 +6,12 @@ import { Check, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { companyCriteriaUtils } from '@/lib/utils';
 
+interface EnrichmentSources {
+  crawl: boolean;
+  google: boolean;
+  linkedin: boolean;
+}
+
 interface CompanyProgressProps {
   /** Current progress message to display */
   progressMessage: string;
@@ -13,22 +19,38 @@ interface CompanyProgressProps {
   currentEventType?: ProgressEventType;
   /** Store messages for each completed step to persist their display */
   stepMessages?: Record<string, string>;
+  /** Source configuration to determine which steps to show */
+  sources?: EnrichmentSources;
 }
 
 /**
- * Define the sequential order of progress steps for company enrichment
- * Each step represents a different phase of the analysis process
+ * All possible progress steps with their configuration
  */
-const STEP_ORDER = [
-  PROGRESS_EVENTS.DISCOVERY_STARTED, // Step 1: Initial website discovery and analysis
-  PROGRESS_EVENTS.INTERNAL_PAGES_STARTED, // Step 2: Deep dive into internal website pages
-  PROGRESS_EVENTS.LINKEDIN_STARTED, // Step 3: LinkedIn profile analysis (if available)
-  PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED, // Step 4: External research via Google search
-  PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, // Step 5: Final analysis and fit scoring
+const ALL_STEPS = [
+  { event: PROGRESS_EVENTS.DISCOVERY_STARTED, required: true }, // Always runs - basic website analysis
+  { event: PROGRESS_EVENTS.INTERNAL_PAGES_STARTED, sourceKey: 'crawl' as keyof EnrichmentSources },
+  { event: PROGRESS_EVENTS.LINKEDIN_STARTED, sourceKey: 'linkedin' as keyof EnrichmentSources },
+  { event: PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED, sourceKey: 'google' as keyof EnrichmentSources },
+  { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, required: true }, // Always runs - final analysis
 ] as const;
 
+/**
+ * Build step order based on enabled sources
+ */
+const buildStepOrder = (sources?: EnrichmentSources) => {
+  if (!sources) {
+    // Default to all steps if no sources config provided
+    return ALL_STEPS.map((step) => step.event);
+  }
+
+  return ALL_STEPS.filter(
+    (step) =>
+      ('required' in step && step.required) || ('sourceKey' in step && step.sourceKey && sources[step.sourceKey])
+  ).map((step) => step.event);
+};
+
 /** Type representing valid step events (subset of all progress events) */
-type StepEventType = (typeof STEP_ORDER)[number];
+type StepEventType = ProgressEventType;
 
 /**
  * Human-readable labels for each step to display in the UI
@@ -46,10 +68,11 @@ const STEP_LABELS = {
  * Type guard function to check if a given event type is one of our defined step events
  * This helps distinguish between step events and other progress events (like CONNECTED, COMPLETED, etc.)
  * @param eventType - The event type to check
+ * @param stepOrder - The dynamic step order based on sources
  * @returns true if the event type is a valid step event
  */
-const isStepEvent = (eventType: ProgressEventType): eventType is StepEventType => {
-  return STEP_ORDER.includes(eventType as StepEventType);
+const isStepEvent = (eventType: ProgressEventType, stepOrder: ProgressEventType[]): eventType is StepEventType => {
+  return stepOrder.includes(eventType);
 };
 
 /**
@@ -63,26 +86,29 @@ const isStepEvent = (eventType: ProgressEventType): eventType is StepEventType =
  *
  * @param props - Component props containing progress information
  */
-const CompanyProgress = ({ progressMessage, currentEventType, stepMessages = {} }: CompanyProgressProps) => {
+const CompanyProgress = ({ progressMessage, currentEventType, stepMessages = {}, sources }: CompanyProgressProps) => {
+  // Build dynamic step order based on enabled sources
+  const stepOrder = buildStepOrder(sources);
+
   /**
    * Calculate the current step index based on the event type
    * Special handling for different event states:
    * - CONNECTED: Show first step as current (index 0)
-   * - Step events: Find their position in STEP_ORDER
+   * - Step events: Find their position in dynamic stepOrder
    * - Other events: Return -1 (no current step)
    */
   const currentStepIndex =
     currentEventType === PROGRESS_EVENTS.CONNECTED
       ? 0 // When connected, highlight the first step as about to start
-      : currentEventType && isStepEvent(currentEventType)
-      ? STEP_ORDER.indexOf(currentEventType) // Find the step's position
+      : currentEventType && isStepEvent(currentEventType, stepOrder)
+      ? stepOrder.findIndex((step) => step === currentEventType) // Find the step's position
       : -1; // Not a step event, so no step is current
 
   return (
     <div className='mt-8 mb-6'>
       {/* Vertical Timeline Container */}
       <div className='space-y-6'>
-        {STEP_ORDER.map((step, index) => {
+        {stepOrder.map((step, index) => {
           // Determine the state of each step based on current progress
           const isCompleted = index < currentStepIndex; // Steps before current are completed
           const isCurrent = index === currentStepIndex; // This step is currently active
@@ -107,7 +133,7 @@ const CompanyProgress = ({ progressMessage, currentEventType, stepMessages = {} 
                 )}
 
                 {/* Vertical connecting line between steps (all except the last one) */}
-                {index < STEP_ORDER.length - 1 && (
+                {index < stepOrder.length - 1 && (
                   <div className='absolute top-6 left-1/2 transform -translate-x-1/2 w-px h-12 bg-gray-200' />
                 )}
               </div>
