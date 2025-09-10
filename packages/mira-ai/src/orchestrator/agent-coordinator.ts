@@ -3,8 +3,7 @@ import { runInternalPagesAgent } from '../agents/internal-pages-agent.js';
 import { runLinkedInAgent } from '../agents/linkedin-agent.js';
 import { runGoogleSearchAgent } from '../agents/google-search-agent.js';
 import { runCompanyAnalysisAgent } from '../agents/company-analysis-agent.js';
-import { LINKEDIN_DATA_POINTS, GOOGLE_SEARCH_DATA_POINTS } from '../constants/data-points.js';
-import type { DataPoint, EnrichedCompany } from '../types/company.js';
+import type { DataPoint, EnrichedCompany, CustomDataPoint } from '../types/company.js';
 import type { DiscoveryOutput } from '../types/agent.js';
 import type { CompanyAnalysis } from '../types/company-analysis.js';
 import { getDataPointsNeedingImprovement } from './data-merger.js';
@@ -17,6 +16,7 @@ export interface DiscoveryStepResult {
   internalPages: Record<string, string | null | undefined>;
   socialMediaLinks: string[];
   finalURL: string;
+  googleQueries?: Record<string, string[]>;
 }
 
 /**
@@ -25,6 +25,7 @@ export interface DiscoveryStepResult {
 export interface LinkedInEnrichmentOptions {
   linkedInUrl: string;
   baseDataPoints: Record<string, DataPoint | undefined>;
+  dataPoints: CustomDataPoint[];
   confidenceThreshold?: number;
 }
 
@@ -35,6 +36,8 @@ export interface GoogleSearchEnrichmentOptions {
   companyName: string;
   domain: string;
   baseDataPoints: Record<string, DataPoint | undefined>;
+  dataPoints: CustomDataPoint[];
+  googleQueries?: Record<string, string[]>;
   confidenceThreshold?: number;
 }
 
@@ -49,10 +52,14 @@ export interface CompanyAnalysisOptions {
 /**
  * Runs the discovery agent and returns structured results
  */
-export const runDiscoveryStep = async (url: string): Promise<DiscoveryStepResult> => {
+export const runDiscoveryStep = async (
+  url: string,
+  dataPoints: CustomDataPoint[],
+  includeGoogleQueries: boolean = false
+): Promise<DiscoveryStepResult> => {
   console.info(`[Orchestrator] Starting website discovery with AI agent for: ${url}`);
 
-  const discoveryAgentResult = await runDiscoveryAgent(url);
+  const discoveryAgentResult = await runDiscoveryAgent(url, dataPoints, includeGoogleQueries);
 
   if (!discoveryAgentResult.success) {
     throw new Error(`Website discovery agent failed: ${discoveryAgentResult.error}`);
@@ -63,6 +70,7 @@ export const runDiscoveryStep = async (url: string): Promise<DiscoveryStepResult
     internalPages: discoveryAgentResult.internalPages ?? {},
     socialMediaLinks: discoveryAgentResult.socialMediaLinks || [],
     finalURL: discoveryAgentResult.finalURL!,
+    googleQueries: discoveryAgentResult.googleQueries,
   };
 };
 
@@ -70,14 +78,15 @@ export const runDiscoveryStep = async (url: string): Promise<DiscoveryStepResult
  * Runs the internal pages agent
  */
 export const runInternalPagesStep = async (
-  discoveryResult: DiscoveryStepResult
+  discoveryResult: DiscoveryStepResult,
+  dataPoints: CustomDataPoint[]
 ): Promise<Record<string, DataPoint | undefined>> => {
   const input: DiscoveryOutput = {
     dataPoints: discoveryResult.dataPoints,
     internalPages: discoveryResult.internalPages,
   };
 
-  const internalPagesResult = await runInternalPagesAgent(input);
+  const internalPagesResult = await runInternalPagesAgent(input, dataPoints);
 
   if (!internalPagesResult.success) {
     throw new Error(`Internal pages agent failed: ${internalPagesResult.error}`);
@@ -97,7 +106,7 @@ export const runLinkedInEnrichmentStep = async (
 }> => {
   const { linkedInUrl, baseDataPoints, confidenceThreshold = 3 } = options;
 
-  const needs = getDataPointsNeedingImprovement(baseDataPoints, LINKEDIN_DATA_POINTS, confidenceThreshold);
+  const needs = getDataPointsNeedingImprovement(baseDataPoints, [], confidenceThreshold);
   const sourcesUsed = new Set<string>();
 
   if (needs.length === 0) {
@@ -110,7 +119,8 @@ export const runLinkedInEnrichmentStep = async (
   try {
     const linkedInResult = await runLinkedInAgent({
       linkedInUrl,
-      needs: needs as (typeof LINKEDIN_DATA_POINTS)[number][],
+      needs: needs as string[],
+      dataPoints: options.dataPoints,
     });
 
     if (linkedInResult.success && linkedInResult.extracted) {
@@ -157,12 +167,18 @@ export const runGoogleSearchEnrichmentStep = async (
   extracted: Record<string, DataPoint | undefined>;
   sourcesUsed: Set<string>;
 }> => {
-  const { companyName, domain, baseDataPoints, confidenceThreshold = 3 } = options;
+  const { companyName, domain, baseDataPoints, googleQueries = {}, confidenceThreshold = 3 } = options;
 
-  const needs = getDataPointsNeedingImprovement(baseDataPoints, GOOGLE_SEARCH_DATA_POINTS, confidenceThreshold);
+  const needs = getDataPointsNeedingImprovement(baseDataPoints, [], confidenceThreshold);
   const sourcesUsed = new Set<string>();
 
   if (needs.length === 0 || !domain) {
+    return { extracted: {}, sourcesUsed };
+  }
+
+  // Skip Google search if no queries are provided
+  if (Object.keys(googleQueries).length === 0) {
+    console.info('[Orchestrator] No Google queries provided - skipping Google search');
     return { extracted: {}, sourcesUsed };
   }
 
@@ -171,7 +187,10 @@ export const runGoogleSearchEnrichmentStep = async (
   const googleResult = await runGoogleSearchAgent({
     companyName,
     domain,
-    needs: needs as (typeof GOOGLE_SEARCH_DATA_POINTS)[number][],
+    needs: needs as string[],
+    dataPoints: options.dataPoints,
+    googleQueries,
+    baseDataPoints,
   });
 
   if (googleResult.success && googleResult.extracted) {

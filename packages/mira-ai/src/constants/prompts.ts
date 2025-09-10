@@ -1,22 +1,5 @@
-import { EnrichedCompany } from '../types/company.js';
-import { PAGE_NAME_PATTERNS } from './data-points.js';
+import { EnrichedCompany, CustomDataPoint } from '../types/company.js';
 import type { LinkedInPerson } from '../types/linkedin.js';
-
-/**
- * Helper function to get human-readable description for page types
- */
-const getPageTypeDescription = (pageType: string): string => {
-  const descriptions: Record<string, string> = {
-    about: 'About/Company page',
-    careers: 'Careers/Jobs page',
-    blog: 'Blog/Insights page',
-    news: 'News/Press page',
-    clients: 'Clients/Customers page',
-    caseStudies: 'Case Studies page',
-    contact: 'Contact page',
-  };
-  return descriptions[pageType] || pageType;
-};
 
 /**
  * Reusable confidence scoring guidelines for all prompts
@@ -91,52 +74,96 @@ Strict Rules:
 /**
  * Discovery internal links agent instructions
  */
-export const DISCOVERY_INTERNAL_LINKS_AGENT_INSTRUCTIONS =
-  'Extract and categorize internal page links from provided navigation links. Focus on link matching and classification only.';
+
+export const DISCOVERY_PAGES_AND_QUERIES_AGENT_INSTRUCTIONS =
+  'Analyze website navigation links to identify relevant internal pages AND generate targeted Google search queries for finding company data points. Return strict JSON only.';
 
 /**
- * Discovery internal links extraction prompt
+ * Combined discovery prompt for internal pages and Google search queries
  */
-export const createDiscoveryInternalLinksPrompt = (finalURL: string, links: Array<{ href: string; text: string }>) => {
-  // Generate page types description from constants
-  const pageTypesDescription = Object.entries(PAGE_NAME_PATTERNS)
-    .filter(([pageType]) => pageType !== 'landingPage') // Skip landingPage
-    .map(([pageType, patterns]) => `- ${pageType}: ${getPageTypeDescription(pageType)} (${patterns.join(', ')})`)
-    .join('\n');
+export const createDiscoveryPagesAndQueriesPrompt = (
+  finalURL: string,
+  companyName: string,
+  domain: string,
+  links: Array<{ href: string; text: string }>,
+  dataPoints: CustomDataPoint[],
+  includeGoogleQueries: boolean
+) => {
+  const dataPointsList = dataPoints.map((dp) => `- ${dp.name}: ${dp.description}`).join('\n');
 
-  return `Task:
-Extract and categorize internal page links from the provided website navigation links.
+  const googleQueriesSection = includeGoogleQueries
+    ? `
+## Task 2: Google Search Queries
+Generate effective Google search queries to find information about the data points that might not be available on the company's website.
+
+Guidelines for Google queries:
+1. Create 1-3 targeted search queries per data point
+2. Include the company name "${companyName}" in queries where relevant
+3. Use site exclusions (-site:${domain}) for external information like press coverage
+4. Focus on recent information when applicable (add "recent" or year)
+5. Combine related data points into shared queries when possible
+6. Use OR operators for alternative terms
+7. Keep queries concise and specific
+
+Examples of good queries:
+- For funding: "${companyName} funding recent", "${companyName} investment series"
+- For press: "${companyName} (press OR news OR announcement) -site:${domain}"
+- For partnerships: "${companyName} partnership collaboration"
+- For leadership: "${companyName} CEO founder leadership team"`
+    : '';
+
+  const outputFormat = includeGoogleQueries
+    ? `{
+  "internalPages": {
+    "descriptive_page_name": "exact_url_from_list",
+    "another_descriptive_name": "exact_url_from_list"
+  },
+  "googleQueries": {
+    "dataPointName1": ["query1", "query2"],
+    "dataPointName2": ["query1"],
+    ...
+  }
+}`
+    : `{
+  "internalPages": {
+    "descriptive_page_name": "exact_url_from_list",
+    "another_descriptive_name": "exact_url_from_list"
+  },
+  "googleQueries": null
+}`;
+
+  return `Company: ${companyName}
+Website: ${finalURL}
+Domain: ${domain}
+
+Data Points We Need to Extract:
+${dataPointsList}
+
+## Task 1: Internal Page Selection
+Analyze the provided website navigation links and select which internal pages would be most relevant for extracting the requested data points.
 You MUST ONLY use the exact URLs from the Available Website Links list below.
 You are NOT allowed to construct, invent, or guess any URLs.
 
-Output Format:
-You should respond in valid JSON format:
-{
-    "about": "https://company.com/about",
-    "careers": "https://company.com/jobs"
-}
-
-If no matching links are found, return an empty object:
-{}
-
-Page Types to Extract:
-${pageTypesDescription}
-
-Company Website URL: ${finalURL}
-
 Available Website Links:
-${links.map((link) => `- ${link.href} (text: "${link.text}")`).join('\n')}
+${links.map((link, i) => `${i + 1}. ${link.href} (Link text: "${link.text}")`).join('\n')}
 
-Strict Rules:
-- Use ONLY links from the Available Website Links list above
-- Match based on URL path patterns AND link text from the page type descriptions
-- Return full URLs (not relative paths)
-- Do NOT include page types you did not find matching links for
-- Do NOT invent or assume links not present in the list
-- Ignore external links (different domains from ${finalURL})
-- If no matches are found, return {}
-- Be accurate - only include links that clearly match the patterns
-- Focus on quality matches over quantity`;
+Rules for internal page selection:
+1. Select pages that are most likely to contain the requested data points
+2. Prioritize pages like About Us, Team, Careers, Press/News, Investors
+3. Use ONLY the exact URLs provided in the Available Website Links list
+4. Give each selected page a descriptive name that indicates what type of information it contains
+5. Return empty object for internalPages if no relevant internal pages are found
+6. Prioritize pages that are most likely to contain multiple data points
+7. Do not include the main landing page URL in your response${googleQueriesSection}
+
+Output Format:
+Return valid JSON in this exact format:
+${outputFormat}
+
+Remember: 
+- For internal pages, you can only use URLs that are explicitly listed in the Available Website Links section above
+- For Google queries, create targeted searches that will find external information about the company
+- Return valid JSON only`;
 };
 
 /**

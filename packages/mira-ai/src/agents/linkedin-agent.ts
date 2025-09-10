@@ -14,17 +14,14 @@
 import { Agent, run } from '@openai/agents';
 import { AGENT_CONFIGS } from '../constants/agent-config.js';
 import { scrapeLinkedInCompany } from '../services/linkedin-company-scraper.js';
-import { DATA_POINT_DESCRIPTIONS, LINKEDIN_DATA_POINTS } from '../constants/data-points.js';
-import { createDataPointsSchema, DataPoint } from '../types/company.js';
+import { createDataPointsSchema, DataPoint, CustomDataPoint } from '../types/company.js';
 import { createLinkedInPrompt, LINKEDIN_AGENT_INSTRUCTIONS } from '../constants/prompts.js';
-
-// Allowed data point keys for LinkedIn enrichment
-type LinkedInDataPointKey = (typeof LINKEDIN_DATA_POINTS)[number];
 
 /** Input expected by the LinkedIn Agent */
 export interface LinkedInAgentInput {
   linkedInUrl: string;
-  needs: LinkedInDataPointKey[];
+  needs: string[];
+  dataPoints: CustomDataPoint[];
 }
 
 /** Output from the LinkedIn Agent */
@@ -51,19 +48,20 @@ export const createLinkedInAgent = (keys: string[]) =>
  */
 export const runLinkedInAgent = async (input: LinkedInAgentInput): Promise<LinkedInAgentOutput> => {
   try {
-    const { linkedInUrl, needs } = input;
+    const { linkedInUrl, needs, dataPoints } = input;
 
-    if (!linkedInUrl || !Array.isArray(needs)) {
-      return { success: false, extracted: {}, error: 'Invalid input: linkedInUrl and needs are required' };
+    if (!linkedInUrl || !Array.isArray(needs) || !Array.isArray(dataPoints)) {
+      return { success: false, extracted: {}, error: 'Invalid input: linkedInUrl, needs, and dataPoints are required' };
     }
 
-    // Validate that requested data points are supported
-    const unsupportedNeeds = needs.filter((need) => !LINKEDIN_DATA_POINTS.includes(need));
-    if (unsupportedNeeds.length > 0) {
+    // Validate that all requested data points are provided in the dataPoints array
+    const availableDataPointNames = dataPoints.map((dp) => dp.name);
+    const missingDataPoints = needs.filter((need) => !availableDataPointNames.includes(need));
+    if (missingDataPoints.length > 0) {
       return {
         success: false,
         extracted: {},
-        error: `Unsupported data points: ${unsupportedNeeds.join(', ')}. Supported: ${LINKEDIN_DATA_POINTS.join(', ')}`,
+        error: `Missing data point definitions: ${missingDataPoints.join(', ')}`,
       };
     }
 
@@ -89,7 +87,10 @@ export const runLinkedInAgent = async (input: LinkedInAgentInput): Promise<Linke
 
     // Step 2: Run LLM analysis on LinkedIn content
     const dataPointKeys = needs as string[];
-    const descriptions = dataPointKeys.map((key) => `- ${key}: ${DATA_POINT_DESCRIPTIONS[key]}`).join('\n');
+    const descriptions = dataPoints
+      .filter((dp) => dataPointKeys.includes(dp.name))
+      .map((dp) => `- ${dp.name}: ${dp.description}`)
+      .join('\n');
 
     const prompt = createLinkedInPrompt(descriptions, linkedInUrl, linkedInData);
     const agent = createLinkedInAgent(dataPointKeys);

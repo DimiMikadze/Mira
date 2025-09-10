@@ -1,5 +1,5 @@
 import { getExecutionTime } from '../utils.js';
-import type { EnrichedCompany } from '../types/company.js';
+import type { EnrichedCompany, EnrichmentConfig } from '../types/company.js';
 import type { CompanyAnalysis } from '../types/company-analysis.js';
 import { createProgressReporter, countMeaningfulDataPoints, type ProgressCallback } from './progress-manager.js';
 import { mergeDataPoints, countExtractedDataPoints } from './data-merger.js';
@@ -48,6 +48,7 @@ export interface MiraConfig {
 export interface MiraEnrichmentOptions {
   companyCriteria?: string;
   onProgress?: ProgressCallback;
+  enrichmentConfig?: EnrichmentConfig;
 }
 
 /**
@@ -86,13 +87,17 @@ export const researchCompany = async (
   process.env.SCRAPING_BEE_API_KEY = config.apiKeys.scrapingBeeApiKey;
 
   const startTime = Date.now();
-  const { companyCriteria, onProgress } = options || {};
+  const { companyCriteria, onProgress, enrichmentConfig } = options || {};
   const progressReporter = createProgressReporter(onProgress);
   const sourcesManager = createSourcesManager();
 
+  // Get data points and sources from config (with fallback to empty array for now)
+  const dataPoints = enrichmentConfig?.dataPoints || [];
+  const sourcesConfig = enrichmentConfig?.sources || { crawl: true, google: false, linkedin: false };
+
   // Step 1: Discovery Agent
   progressReporter.reportDiscoveryStarted();
-  const discoveryResult = await runDiscoveryStep(url);
+  const discoveryResult = await runDiscoveryStep(url, dataPoints, sourcesConfig.google);
 
   const discoveryDataPointsCount = countMeaningfulDataPoints(discoveryResult.dataPoints);
   const internalPagesCount = Object.keys(discoveryResult.internalPages).length;
@@ -102,7 +107,7 @@ export const researchCompany = async (
 
   // Step 2: Internal Pages Agent
   progressReporter.reportInternalPagesStarted(internalPagesCount);
-  const internalPagesDataPoints = await runInternalPagesStep(discoveryResult);
+  const internalPagesDataPoints = await runInternalPagesStep(discoveryResult, dataPoints);
 
   // Merge discovery and internal pages data
   let baseDataPoints = mergeDataPoints(discoveryResult.dataPoints, internalPagesDataPoints);
@@ -122,6 +127,7 @@ export const researchCompany = async (
       const linkedInResult = await runLinkedInEnrichmentStep({
         linkedInUrl,
         baseDataPoints,
+        dataPoints,
       });
 
       if (Object.keys(linkedInResult.extracted).length > 0) {
@@ -154,6 +160,8 @@ export const researchCompany = async (
       companyName,
       domain,
       baseDataPoints,
+      dataPoints,
+      googleQueries: discoveryResult.googleQueries || {},
     });
 
     if (Object.keys(googleResult.extracted).length > 0) {
@@ -167,7 +175,6 @@ export const researchCompany = async (
   // Step 5: Create enriched company object
   const enrichedCompany: EnrichedCompany = {
     ...baseDataPoints,
-    socialMediaLinks: discoveryResult.socialMediaLinks,
   };
 
   // Report Google search completion
@@ -184,18 +191,18 @@ export const researchCompany = async (
   }
 
   // Step 7: Compile sources and calculate execution time
-  const sources = sourcesManager.getSources(discoveryResult.finalURL);
+  const sourceUrls = sourcesManager.getSources(discoveryResult.finalURL);
   const executionTime = getExecutionTime(startTime);
 
   const result: EnrichmentResult = {
     enrichedCompany,
     executionTime,
-    sources,
+    sources: sourceUrls,
     companyAnalysis,
   };
 
   // Step 8: Report final completion
-  const totalSources = sources.length;
+  const totalSources = sourceUrls.length;
   const dataPointsFound = Object.keys(enrichedCompany)
     .filter((key) => key !== 'socialMediaLinks')
     .filter((key) => {
@@ -205,7 +212,7 @@ export const researchCompany = async (
       }
       return false;
     }).length;
-  const socialLinksFound = enrichedCompany.socialMediaLinks?.length || 0;
+  const socialLinksFound = discoveryResult.socialMediaLinks?.length || 0;
 
   progressReporter.reportEnrichmentCompleted(dataPointsFound, totalSources, socialLinksFound);
 

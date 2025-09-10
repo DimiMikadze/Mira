@@ -15,18 +15,17 @@ import {
   createGoogleSearchPrompt,
   type GoogleSearchSnippet,
 } from '../constants/prompts.js';
-import { createDataPointsWithSourceSchema } from '../types/company.js';
-import { DATA_POINT_DESCRIPTIONS, GOOGLE_SEARCH_DATA_POINTS } from '../constants/data-points.js';
+import { createDataPointsWithSourceSchema, CustomDataPoint, DataPoint } from '../types/company.js';
 import { AGENT_CONFIGS } from '../constants/agent-config.js';
-
-// Allowed data point keys for Google Search enrichment
-type GoogleSearchDataPointKey = (typeof GOOGLE_SEARCH_DATA_POINTS)[number];
 
 /** Input expected by the Google Search Agent */
 export interface GoogleSearchAgentInput {
   companyName: string;
   domain: string;
-  needs: GoogleSearchDataPointKey[];
+  needs: string[];
+  dataPoints: CustomDataPoint[];
+  googleQueries: Record<string, string[]>; // queries per data point from discovery agent
+  baseDataPoints: Record<string, DataPoint | undefined>; // existing data points to check confidence
   includeRawResults?: boolean; // when true, include raw Google responses
 }
 
@@ -45,35 +44,39 @@ export interface GoogleSearchAgentOutput {
 }
 
 /**
- * Build a list of queries based on requested data points.
- * Rules:
- * - If funding is needed → generic funding query with company name
- * - If press-like items are needed → third-party press/news excluding the company's domain
- * - Deduplicate and cap total queries to 2
+ * Filter and select queries based on missing or low-confidence data points.
+ * Only searches for data points that are missing or have confidence score < 3.
  */
-const buildQueries = (companyName: string, domain: string, needs: GoogleSearchDataPointKey[]): string[] => {
+const selectQueriesToRun = (
+  needs: string[],
+  googleQueries: Record<string, string[]>,
+  baseDataPoints: Record<string, DataPoint | undefined>
+): string[] => {
   const queries: string[] = [];
+  const dataPointsToSearch: string[] = [];
 
-  const needsSet = new Set(needs);
-  console.info(`[GoogleSearchAgent] needs=${Array.from(needsSet).join(', ')}`);
-  const wantsFunding = needsSet.has('recentFunding') || needsSet.has('totalFunding');
-  const pressKeys: GoogleSearchDataPointKey[] = [
-    'acquisitions',
-    'partnerships',
-    'newExecutiveHires',
-    'awardsCertifications',
-    'newProductLaunch',
-    'pressMediaMentions',
-  ];
-  const wantsPressPack = pressKeys.some((k) => needsSet.has(k));
+  // Identify data points that need improvement (missing or low confidence)
+  for (const dataPointName of needs) {
+    const existing = baseDataPoints[dataPointName];
+    const needsImprovement = !existing || existing.confidenceScore < 3;
 
-  if (wantsFunding) queries.push(`${companyName} funding recent`);
-  if (wantsPressPack) queries.push(`${companyName} (press OR news) -site:${domain}`);
+    if (needsImprovement) {
+      dataPointsToSearch.push(dataPointName);
 
-  // Deduplicate and cap to 2
+      // Add queries for this data point
+      const dataPointQueries = googleQueries[dataPointName] || [];
+      queries.push(...dataPointQueries);
+    }
+  }
+
+  console.info(`[GoogleSearchAgent] dataPointsToSearch=${dataPointsToSearch.join(', ')}`);
+
+  // Deduplicate and limit total queries (combine similar queries)
   const deduped = Array.from(new Set(queries));
   console.info(`[GoogleSearchAgent] queries=${JSON.stringify(deduped)}`);
-  return deduped.slice(0, 2);
+
+  // Limit to reasonable number of queries (e.g., 3-4 max)
+  return deduped.slice(0, 4);
 };
 
 /**
@@ -98,12 +101,18 @@ export const createGoogleSearchAgent = (keys: string[]) =>
 // Runs the Google Search Agent end-to-end
 export const runGoogleSearchAgent = async (input: GoogleSearchAgentInput): Promise<GoogleSearchAgentOutput> => {
   try {
-    const { companyName, domain, needs, includeRawResults = false } = input;
-    if (!companyName || !Array.isArray(needs)) {
+    const { companyName, domain, needs, googleQueries, baseDataPoints, includeRawResults = false } = input;
+    if (!companyName || !Array.isArray(needs) || !googleQueries || !baseDataPoints) {
       return { success: false, queries: [], resultsByQuery: {}, error: 'invalid input' };
     }
 
-    const queries = buildQueries(companyName, domain, needs);
+    const queries = selectQueriesToRun(needs, googleQueries, baseDataPoints);
+
+    // If no queries are needed (all data points have high confidence), skip Google search
+    if (queries.length === 0) {
+      console.info('[GoogleSearchAgent] No queries needed - all data points have sufficient confidence');
+      return { success: true, queries: [], extracted: {} };
+    }
 
     // Run Google searches in parallel for speed
     const searchResults = await Promise.all(queries.map((q) => searchGoogle(q)));
@@ -127,7 +136,10 @@ export const runGoogleSearchAgent = async (input: GoogleSearchAgentInput): Promi
 
     // Prepare LLM evaluation only for the requested keys
     const dataPointKeys = input.needs as string[];
-    const descriptions = dataPointKeys.map((k) => `- ${k}: ${DATA_POINT_DESCRIPTIONS[k] ?? ''}`).join('\n');
+    const descriptions = input.dataPoints
+      .filter((dp) => dataPointKeys.includes(dp.name))
+      .map((dp) => `- ${dp.name}: ${dp.description}`)
+      .join('\n');
     // Prompt instructs the model to return { content, confidenceScore, source } per key
     const prompt = createGoogleSearchPrompt(descriptions, input.companyName, input.domain, allSnippets);
 

@@ -16,4 +16,3 @@ export { PROGRESS_EVENTS } from './constants/progress.js';
 export type { ProgressEventType } from './constants/progress.js';
 
 // Export data point constants for reference
-export { LINKEDIN_DATA_POINTS, GOOGLE_SEARCH_DATA_POINTS } from './constants/data-points.js';
