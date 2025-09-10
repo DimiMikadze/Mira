@@ -3,18 +3,18 @@
 import React from 'react';
 import type { EnrichedCompany, DataPoint, LinkedInPerson } from 'mira-ai/types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Link, Building2 } from 'lucide-react';
+import { Link } from 'lucide-react';
 
 interface CompanyDataPointsProps {
   enrichedCompany: EnrichedCompany;
   /** Optional custom data point definitions for display formatting */
-  dataPointDefinitions?: Array<{ name: string; description: string; category?: string }>;
+  dataPointDefinitions?: Array<{ name: string; description: string }>;
 }
 
 /**
  * Company Data Points Component
  *
- * Displays extracted company information organized into categorized sections
+ * Displays extracted company information
  */
 const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, dataPointDefinitions }) => {
   // Returns color classes based on confidence score (1-5) - same style as fit score
@@ -170,12 +170,13 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
     );
   };
 
-  // Group data points by category (only if dataPointDefinitions provided with categories)
-  const groupedDataPoints = React.useMemo(() => {
-    const dataPointsArray: Array<{ key: string; dataPoint: DataPoint; displayName: string; category?: string }> = [];
+  // Prepare data points for rendering
+  const dataPoints = React.useMemo(() => {
+    const dataPointsArray: Array<{ key: string; dataPoint: DataPoint; displayName: string }> = [];
 
     Object.entries(enrichedCompany).forEach(([key, dataPoint]) => {
-      if (!dataPoint || key === 'socialMediaLinks') return; // Skip empty and special fields
+      if (!dataPoint || key === 'socialMediaLinks' || key === 'googleQueries') return; // Skip empty and special fields
+      if (Array.isArray(dataPoint)) return; // Skip array values (like googleQueries)
 
       // Find custom definition for this data point
       const customDef = dataPointDefinitions?.find((def) => def.name === key);
@@ -189,51 +190,21 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
         key,
         dataPoint,
         displayName,
-        category: customDef?.category,
       });
     });
 
-    // If no categories are defined, return a simple list without grouping
-    const hasCategories = dataPointsArray.some((item) => item.category);
-    if (!hasCategories) {
-      return { '': dataPointsArray }; // Empty string key for no title
-    }
-
-    // Group by categories when they exist
-    const groups: Record<string, Array<{ key: string; dataPoint: DataPoint; displayName: string }>> = {};
-    dataPointsArray.forEach(({ key, dataPoint, displayName, category }) => {
-      const groupName = category || 'Other';
-      if (!groups[groupName]) groups[groupName] = [];
-      groups[groupName].push({ key, dataPoint, displayName });
-    });
-
-    return groups;
+    return dataPointsArray;
   }, [enrichedCompany, dataPointDefinitions]);
 
   return (
-    <div className='space-y-8'>
-      {/* Render each category that has data points */}
-      {Object.entries(groupedDataPoints).map(([categoryKey, dataPoints]) => {
+    <div className='space-y-6'>
+      {dataPoints.map(({ key, dataPoint, displayName }) => {
         return (
-          <div key={categoryKey || 'main'} className={categoryKey ? 'border-b border-gray-200' : ''}>
-            {categoryKey && (
-              <h3 className='text-lg font-semibold mb-6 flex items-center'>
-                <Building2 className='w-5 h-5 mr-2' />
-                {categoryKey}
-              </h3>
-            )}
-            <div className={categoryKey ? 'pb-6' : 'space-y-6'}>
-              {dataPoints.map(({ key, dataPoint, displayName }) => {
-                return (
-                  <div key={key}>
-                    {renderDataPoints({
-                      name: displayName,
-                      dataPoint,
-                    })}
-                  </div>
-                );
-              })}
-            </div>
+          <div key={key}>
+            {renderDataPoints({
+              name: displayName,
+              dataPoint,
+            })}
           </div>
         );
       })}

@@ -106,12 +106,12 @@ export interface CustomDataPoint {
 }
 
 export interface EnrichmentSources {
-  crawl: boolean;
-  google: boolean;
-  linkedin: boolean;
+  crawl?: boolean;
+  google?: boolean;
+  linkedin?: boolean;
 }
 
 export interface EnrichmentConfig {
   dataPoints: CustomDataPoint[];
-  sources: EnrichmentSources;
+  sources?: EnrichmentSources;
 }

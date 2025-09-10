@@ -9,7 +9,7 @@ import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { url, companyCriteria } = await request.json();
+    const { url, companyCriteria, sources } = await request.json();
 
     if (!url) {
       return new Response('URL is required', { status: 400 });
@@ -202,9 +202,9 @@ export async function POST(request: NextRequest) {
               },
             ],
             sources: {
-              crawl: true,
-              linkedin: true,
-              google: true,
+              crawl: sources?.crawl ?? false,
+              linkedin: sources?.linkedin ?? false,
+              google: sources?.google ?? true, // Default to true for backward compatibility
             },
           };
 

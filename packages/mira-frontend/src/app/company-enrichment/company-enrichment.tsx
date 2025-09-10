@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import type { EnrichedCompany } from 'mira-ai/types';
+import type { EnrichedCompany, EnrichmentSources } from 'mira-ai/types';
 
 import CompanyAnalysis from './company-analysis';
 import CompanyDataPoints from './company-data-points';
@@ -28,6 +28,12 @@ const CompanyEnrichment = () => {
   const [apiErrorMessage, setApiErrorMessage] = useState('');
   const [progressMessage, setProgressMessage] = useState('');
   const [currentEventType, setCurrentEventType] = useState<ProgressEventType | undefined>();
+  // Default sources configuration - can be made configurable later
+  const [sourcesConfig] = useState<EnrichmentSources>({
+    crawl: false,
+    linkedin: false,
+    google: true,
+  });
   const [stepMessages, setStepMessages] = useState<Record<string, string>>({});
   const [executionTime, setExecutionTime] = useState('');
   const [sources, setSources] = useState<string[]>([]);
@@ -68,7 +74,7 @@ const CompanyEnrichment = () => {
 
       const response = await fetch(API_ENDPOINTS.ENRICH, {
         method: 'POST',
-        body: JSON.stringify({ url, companyCriteria: currentCriteria }),
+        body: JSON.stringify({ url, companyCriteria: currentCriteria, sources: sourcesConfig }),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -179,6 +185,7 @@ const CompanyEnrichment = () => {
             progressMessage={progressMessage}
             currentEventType={currentEventType}
             stepMessages={stepMessages}
+            sources={sourcesConfig}
           />
         )}
 

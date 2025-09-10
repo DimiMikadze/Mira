@@ -102,8 +102,9 @@ const createFinalResult = (
 
 /**
  * Check if all data points are complete and terminate early if so
+ * Still runs company analysis before terminating
  */
-const tryEarlyTermination = (
+const tryEarlyTermination = async (
   baseDataPoints: Record<string, any>,
   dataPoints: any[],
   minimumConfidenceThreshold: number,
@@ -111,8 +112,9 @@ const tryEarlyTermination = (
   discoveryResult: any,
   startTime: number,
   progressReporter: any,
-  stepName: string
-): EnrichmentResult | null => {
+  stepName: string,
+  companyCriteria?: string
+): Promise<EnrichmentResult | null> => {
   if (shouldTerminateEarly(baseDataPoints, dataPoints, minimumConfidenceThreshold)) {
     const stats = getCompletionStats(baseDataPoints, dataPoints, minimumConfidenceThreshold);
     console.info(
@@ -122,7 +124,24 @@ const tryEarlyTermination = (
     );
     progressReporter.reportEarlyTermination?.(stats.completed, stats.total, stats.averageConfidence);
 
-    return createFinalResult(baseDataPoints, sourcesManager, discoveryResult, startTime, progressReporter);
+    // Still run company analysis even with early termination
+    const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
+    progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
+
+    const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
+    const companyAnalysis = await runCompanyAnalysisStep({ companyCriteria, enrichedCompany });
+    if (companyAnalysis) {
+      progressReporter.reportCompanyAnalysisCompleted();
+    }
+
+    return createFinalResult(
+      baseDataPoints,
+      sourcesManager,
+      discoveryResult,
+      startTime,
+      progressReporter,
+      companyAnalysis
+    );
   }
   return null;
 };
@@ -186,7 +205,7 @@ export const researchCompany = async (
   progressReporter.reportDiscoveryCompleted(discoveryDataPointsCount, internalPagesCount, socialLinksCount);
 
   // Check if we already have all data points from just the landing page
-  const discoveryCompletion = tryEarlyTermination(
+  const discoveryCompletion = await tryEarlyTermination(
     discoveryResult.dataPoints,
     dataPoints,
     minimumConfidenceThreshold,
@@ -194,7 +213,8 @@ export const researchCompany = async (
     discoveryResult,
     startTime,
     progressReporter,
-    'discovery'
+    'discovery',
+    companyCriteria
   );
   if (discoveryCompletion) return discoveryCompletion;
 
@@ -221,7 +241,7 @@ export const researchCompany = async (
   let baseDataPoints = mergeDataPoints(discoveryResult.dataPoints, internalPagesDataPoints);
 
   // Check if we have all data points after internal pages
-  const internalPagesCompletion = tryEarlyTermination(
+  const internalPagesCompletion = await tryEarlyTermination(
     baseDataPoints,
     dataPoints,
     minimumConfidenceThreshold,
@@ -229,7 +249,8 @@ export const researchCompany = async (
     discoveryResult,
     startTime,
     progressReporter,
-    'internal pages'
+    'internal pages',
+    companyCriteria
   );
   if (internalPagesCompletion) return internalPagesCompletion;
 
@@ -271,7 +292,7 @@ export const researchCompany = async (
   progressReporter.reportInternalPagesCompleted(internalPagesDataPointsCount, internalPagesCount);
 
   // Check if we have all data points after LinkedIn
-  const linkedInCompletion = tryEarlyTermination(
+  const linkedInCompletion = await tryEarlyTermination(
     baseDataPoints,
     dataPoints,
     minimumConfidenceThreshold,
@@ -279,7 +300,8 @@ export const researchCompany = async (
     discoveryResult,
     startTime,
     progressReporter,
-    'LinkedIn analysis'
+    'LinkedIn analysis',
+    companyCriteria
   );
   if (linkedInCompletion) return linkedInCompletion;
 

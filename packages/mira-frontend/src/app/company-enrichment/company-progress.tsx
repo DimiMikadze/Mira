@@ -1,16 +1,10 @@
 'use client';
 
 import React from 'react';
-import { PROGRESS_EVENTS, type ProgressEventType } from 'mira-ai/types';
+import { PROGRESS_EVENTS, type ProgressEventType, type EnrichmentSources } from 'mira-ai/types';
 import { Check, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { companyCriteriaUtils } from '@/lib/utils';
-
-interface EnrichmentSources {
-  crawl: boolean;
-  google: boolean;
-  linkedin: boolean;
-}
 
 interface CompanyProgressProps {
   /** Current progress message to display */
@@ -39,8 +33,8 @@ const ALL_STEPS = [
  */
 const buildStepOrder = (sources?: EnrichmentSources) => {
   if (!sources) {
-    // Default to all steps if no sources config provided
-    return ALL_STEPS.map((step) => step.event);
+    // Default to only required steps (discovery and analysis) if no sources config provided
+    return ALL_STEPS.filter((step) => 'required' in step && step.required).map((step) => step.event);
   }
 
   return ALL_STEPS.filter(
