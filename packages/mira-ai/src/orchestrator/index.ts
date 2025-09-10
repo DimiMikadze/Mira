@@ -4,6 +4,7 @@ import type { CompanyAnalysis } from '../types/company-analysis.js';
 import { createProgressReporter, countMeaningfulDataPoints, type ProgressCallback } from './progress-manager.js';
 import { mergeDataPoints, countExtractedDataPoints } from './data-merger.js';
 import { createSourcesManager, extractInternalPageUrls } from './sources-manager.js';
+import { shouldTerminateEarly, getCompletionStats } from './early-termination.js';
 import {
   runDiscoveryStep,
   runInternalPagesStep,
@@ -49,7 +50,79 @@ export interface MiraEnrichmentOptions {
   companyCriteria?: string;
   onProgress?: ProgressCallback;
   enrichmentConfig?: EnrichmentConfig;
+  minimumConfidenceThreshold?: number;
 }
+
+/**
+ * Helper function to count meaningful data points in enriched company data
+ */
+const countDataPointsFound = (enrichedCompany: EnrichedCompany): number => {
+  return Object.keys(enrichedCompany)
+    .filter((key) => key !== 'socialMediaLinks')
+    .filter((key) => {
+      const value = enrichedCompany[key as keyof typeof enrichedCompany];
+      if (value && typeof value === 'object' && 'content' in value && 'confidenceScore' in value && 'source' in value) {
+        return value.content?.trim();
+      }
+      return false;
+    }).length;
+};
+
+/**
+ * Helper function to create final enrichment result
+ */
+const createFinalResult = (
+  baseDataPoints: Record<string, any>,
+  sourcesManager: any,
+  discoveryResult: any,
+  startTime: number,
+  progressReporter: any,
+  companyAnalysis?: CompanyAnalysis
+): EnrichmentResult => {
+  const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
+  const sourceUrls = sourcesManager.getSources(discoveryResult.finalURL);
+  const executionTime = getExecutionTime(startTime);
+
+  const result: EnrichmentResult = {
+    enrichedCompany,
+    executionTime,
+    sources: sourceUrls,
+    companyAnalysis,
+  };
+
+  const dataPointsFound = countDataPointsFound(enrichedCompany);
+  const socialLinksFound = discoveryResult.socialMediaLinks?.length || 0;
+
+  progressReporter.reportEnrichmentCompleted(dataPointsFound, sourceUrls.length, socialLinksFound);
+  return result;
+};
+
+/**
+ * Check if all data points are complete and terminate early if so
+ */
+const tryEarlyTermination = (
+  baseDataPoints: Record<string, any>,
+  dataPoints: any[],
+  minimumConfidenceThreshold: number,
+  sourcesManager: any,
+  discoveryResult: any,
+  startTime: number,
+  progressReporter: any,
+  stepName: string
+): EnrichmentResult | null => {
+  if (shouldTerminateEarly(baseDataPoints, dataPoints, minimumConfidenceThreshold)) {
+    const stats = getCompletionStats(baseDataPoints, dataPoints, minimumConfidenceThreshold);
+    console.info(
+      `[Orchestrator] Early completion after ${stepName}: All ${stats.completed}/${
+        stats.total
+      } data points achieved high confidence (avg: ${stats.averageConfidence.toFixed(1)})`
+    );
+    progressReporter.reportEarlyTermination?.(stats.completed, stats.total, stats.averageConfidence);
+
+    return createFinalResult(baseDataPoints, sourcesManager, discoveryResult, startTime, progressReporter);
+  }
+  return null;
+};
 
 /**
  * Orchestrates the company enrichment process by coordinating multiple AI agents
@@ -87,7 +160,7 @@ export const researchCompany = async (
   process.env.SCRAPING_BEE_API_KEY = config.apiKeys.scrapingBeeApiKey;
 
   const startTime = Date.now();
-  const { companyCriteria, onProgress, enrichmentConfig } = options || {};
+  const { companyCriteria, onProgress, enrichmentConfig, minimumConfidenceThreshold = 4 } = options || {};
   const sourcesConfig = {
     crawl: enrichmentConfig?.sources?.crawl ?? false,
     google: enrichmentConfig?.sources?.google ?? false,
@@ -108,6 +181,19 @@ export const researchCompany = async (
   const socialLinksCount = discoveryResult.socialMediaLinks.length;
 
   progressReporter.reportDiscoveryCompleted(discoveryDataPointsCount, internalPagesCount, socialLinksCount);
+
+  // Check if we already have all data points from just the landing page
+  const discoveryCompletion = tryEarlyTermination(
+    discoveryResult.dataPoints,
+    dataPoints,
+    minimumConfidenceThreshold,
+    sourcesManager,
+    discoveryResult,
+    startTime,
+    progressReporter,
+    'discovery'
+  );
+  if (discoveryCompletion) return discoveryCompletion;
 
   // Step 2: Internal Pages Agent (if enabled)
   let internalPagesDataPoints = {};
@@ -130,6 +216,19 @@ export const researchCompany = async (
 
   // Merge discovery and internal pages data
   let baseDataPoints = mergeDataPoints(discoveryResult.dataPoints, internalPagesDataPoints);
+
+  // Check if we have all data points after internal pages
+  const internalPagesCompletion = tryEarlyTermination(
+    baseDataPoints,
+    dataPoints,
+    minimumConfidenceThreshold,
+    sourcesManager,
+    discoveryResult,
+    startTime,
+    progressReporter,
+    'internal pages'
+  );
+  if (internalPagesCompletion) return internalPagesCompletion;
 
   // Step 3: LinkedIn Agent (if enabled and available)
   if (sourcesConfig.linkedin) {
@@ -168,6 +267,19 @@ export const researchCompany = async (
   // Report internal pages completion (needs to happen after LinkedIn)
   progressReporter.reportInternalPagesCompleted(internalPagesDataPointsCount, internalPagesCount);
 
+  // Check if we have all data points after LinkedIn
+  const linkedInCompletion = tryEarlyTermination(
+    baseDataPoints,
+    dataPoints,
+    minimumConfidenceThreshold,
+    sourcesManager,
+    discoveryResult,
+    startTime,
+    progressReporter,
+    'LinkedIn analysis'
+  );
+  if (linkedInCompletion) return linkedInCompletion;
+
   // Step 4: Google Search Agent (if enabled and for missing data points)
   if (sourcesConfig.google) {
     const domain = extractDomain(discoveryResult.finalURL);
@@ -195,54 +307,34 @@ export const researchCompany = async (
     progressReporter.reportGoogleSearchStarted(); // This will show "Google search disabled - skipping"
   }
 
-  // Step 5: Create enriched company object
-  const enrichedCompany: EnrichedCompany = {
-    ...baseDataPoints,
-  };
-
   // Report Google search completion
   const finalDataPointsCount = countMeaningfulDataPoints(baseDataPoints);
   progressReporter.reportGoogleSearchCompleted(finalDataPointsCount);
 
-  // Step 6: Company Analysis Agent
+  // Step 5: Company Analysis Agent
   const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
   progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
 
+  const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
   const companyAnalysis = await runCompanyAnalysisStep({ companyCriteria, enrichedCompany });
   if (companyAnalysis) {
     progressReporter.reportCompanyAnalysisCompleted();
   }
 
-  // Step 7: Compile sources and calculate execution time
-  const sourceUrls = sourcesManager.getSources(discoveryResult.finalURL);
-  const executionTime = getExecutionTime(startTime);
-
-  const result: EnrichmentResult = {
-    enrichedCompany,
-    executionTime,
-    sources: sourceUrls,
-    companyAnalysis,
-  };
-
-  // Step 8: Report final completion
-  const totalSources = sourceUrls.length;
-  const dataPointsFound = Object.keys(enrichedCompany)
-    .filter((key) => key !== 'socialMediaLinks')
-    .filter((key) => {
-      const value = enrichedCompany[key as keyof typeof enrichedCompany];
-      if (value && typeof value === 'object' && 'content' in value && 'confidenceScore' in value && 'source' in value) {
-        return value.content?.trim();
-      }
-      return false;
-    }).length;
-  const socialLinksFound = discoveryResult.socialMediaLinks?.length || 0;
-
-  progressReporter.reportEnrichmentCompleted(dataPointsFound, totalSources, socialLinksFound);
+  // Step 6: Final result compilation
+  const result = createFinalResult(
+    baseDataPoints,
+    sourcesManager,
+    discoveryResult,
+    startTime,
+    progressReporter,
+    companyAnalysis
+  );
 
   console.info(
     `[Orchestrator] sources assembled: internal=${internalPageUrls.length} + finalURL=1 + external=${
-      totalSources - internalPageUrls.length - 1
-    } → total=${totalSources}`
+      result.sources.length - internalPageUrls.length - 1
+    } → total=${result.sources.length}`
   );
 
   return result;
@@ -250,3 +342,4 @@ export const researchCompany = async (
 
 // Re-export types for convenience
 export type { ProgressCallback };
+export { shouldTerminateEarly, getCompletionStats } from './early-termination.js';

@@ -157,6 +157,14 @@ export const createProgressReporter = (onProgress?: ProgressCallback, sources?: 
 
     onProgress?.(PROGRESS_EVENTS.ENRICHMENT_COMPLETED, message);
   },
+
+  /**
+   * Report early termination when all data points have high confidence
+   */
+  reportEarlyTermination: (completedDataPoints: number, totalDataPoints: number, averageConfidence: number) => {
+    const message = `Early completion! All ${completedDataPoints}/${totalDataPoints} data points achieved high confidence (avg: ${averageConfidence.toFixed(1)}/5). Skipping remaining enrichment steps.`;
+    onProgress?.(PROGRESS_EVENTS.ENRICHMENT_COMPLETED, message);
+  },
 });
 
 /**
