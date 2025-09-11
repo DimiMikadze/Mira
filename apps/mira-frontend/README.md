@@ -36,3 +36,16 @@ Build the frontend (from the root of the repository):
 ```bash
 npm run build:mira-frontend
 ```
+
+## Production Security
+
+The frontend includes Basic Auth protection for production deployments:
+
+```bash
+# Basic Auth Configuration (Production Only)
+BASIC_AUTH_USERS=admin:secure_password,user:another_password
+NODE_ENV=production
+```
+
+- **Activation**: Only in production (`NODE_ENV=production`)
+- **Format**: `username1:password1,username2:password2`

@@ -195,6 +195,19 @@ console.log(result.enrichedCompany);
 console.log(result.companyAnalysis);
 ```
 
+### Production Security
+
+The demo frontend includes Basic Auth protection for production deployments. Configure multiple users via environment variables:
+
+```bash
+# Basic Auth (Production Only)
+BASIC_AUTH_USERS=admin:secure_password,user:another_password
+NODE_ENV=production
+```
+
+- **Format**: `username1:password1,username2:password2`
+- **Scope**: Only active in production (`NODE_ENV=production`)
+
 ## Additional Documentation
 
 This monorepo contains two main packages, each with its own README that provides a deeper look into architecture and usage:
