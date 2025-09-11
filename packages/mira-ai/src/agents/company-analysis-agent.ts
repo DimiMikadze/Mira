@@ -25,7 +25,7 @@ const KEYS_WITHOUT_CRITERIA: CompanyAnalysisKey[] = ['executiveSummary'];
 
 /**
  * Input required to run the Company Analysis Agent.
- * - companyCriteria:  when not provided only actionable insights are generated
+ * - companyCriteria: when provided, generates fit score and reasoning
  * - enrichedCompany: merged enriched data ready for analysis
  */
 export interface CompanyAnalysisAgentInput {
@@ -69,6 +69,7 @@ export const createCompanyAnalysisAgentWithoutCriteria = () =>
 
 /**
  * Runs the Company Analysis Agent end-to-end for the provided criteria and enriched company data.
+ * If criteria is provided, generates everything (executive summary + fit score + reasoning).
  * If criteria is not provided, only generates executive summary.
  */
 export const runCompanyAnalysisAgent = async (

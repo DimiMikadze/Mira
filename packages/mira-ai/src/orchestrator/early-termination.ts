@@ -1,4 +1,5 @@
 import type { DataPoint, CustomDataPoint } from '../types/company.js';
+import type { CompanyAnalysis } from '../types/company-analysis.js';
 import { MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/index.js';
 
 /**
@@ -82,4 +83,60 @@ export const getIncompleteDataPoints = (
     const dataPoint = currentDataPoints[key];
     return !dataPoint || dataPoint.confidenceScore < minimumConfidenceThreshold;
   });
+};
+
+// Types and functions for early termination handling
+export interface StepExecutionResult {
+  shouldTerminate: boolean;
+  finalResult?: import('./result-builder.js').EnrichmentResult;
+}
+
+/**
+ * Check if all data points are complete and terminate early if so
+ * Still runs company analysis before terminating
+ */
+export const tryEarlyTermination = async (
+  baseDataPoints: Record<string, DataPoint | undefined>,
+  context: import('./enrichment-context.js').EnrichmentContext,
+  discoveryResult: import('./agent-coordinator.js').DiscoveryStepResult,
+  stepName: string
+): Promise<StepExecutionResult> => {
+  // Import these here to avoid circular dependencies
+  const { runCompanyAnalysisStep } = await import('./agent-coordinator.js');
+  const { createFinalResult } = await import('./result-builder.js');
+
+  if (shouldTerminateEarly(baseDataPoints, context.dataPoints, context.minimumConfidenceThreshold)) {
+    const stats = getCompletionStats(baseDataPoints, context.dataPoints, context.minimumConfidenceThreshold);
+    console.info(
+      `[Orchestrator] Early completion after ${stepName}: All ${stats.completed}/${
+        stats.total
+      } data points achieved high confidence (avg: ${stats.averageConfidence.toFixed(1)})`
+    );
+    context.progressReporter.reportEarlyTermination?.(stats.completed, stats.total, stats.averageConfidence);
+
+    // Run company analysis based on configuration
+    let companyAnalysis: CompanyAnalysis | undefined;
+    const hasCriteria = context.companyCriteria && context.companyCriteria.trim().length > 0;
+    const shouldRunAnalysis = hasCriteria || context.sourcesConfig.analysis;
+
+    if (shouldRunAnalysis) {
+      context.progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
+      const enrichedCompany = { ...baseDataPoints };
+      companyAnalysis = await runCompanyAnalysisStep({
+        companyCriteria: context.companyCriteria,
+        enrichedCompany,
+      });
+      if (companyAnalysis) {
+        context.progressReporter.reportCompanyAnalysisCompleted();
+      }
+    } else {
+      context.progressReporter.reportCompanyAnalysisSkipped();
+    }
+
+    const finalResult = createFinalResult(baseDataPoints, context, discoveryResult, companyAnalysis);
+
+    return { shouldTerminate: true, finalResult };
+  }
+
+  return { shouldTerminate: false };
 };
