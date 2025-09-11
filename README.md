@@ -21,9 +21,11 @@
 
 # About Mira
 
-Mira is an agentic AI library that automates company research. It gathers information from company websites, LinkedIn profiles, and Google Search. The agents discover and crawl pages, extract facts, check external sources, and assemble a structured profile with confidence scores and clear source attribution.
+Mira is an agentic AI library that automates company research with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
 
-The core of Mira is a framework-agnostic library. It can be published as an npm package or integrated directly into your applications, pipelines, or custom workflows.
+The system features smart early termination - once all configured data points reach high confidence scores, it automatically stops processing to save time and API costs. Sources are fully configurable, allowing you to enable or disable website crawling, LinkedIn analysis, Google Search, and executive summary generation based on your needs.
+
+The core of Mira is a framework-agnostic library that can be published as an npm package or integrated directly into your applications, pipelines, or custom workflows.
 
 To demonstrate how it works in practice, this repository includes a Next.js frontend that consumes the core library and provides a simple interface for running research and viewing results.
 
@@ -35,33 +37,44 @@ To demonstrate how it works in practice, this repository includes a Next.js fron
 
 ## Key Features
 
-- **Multi-Agent Architecture** – Specialized agents handle company discovery, internal pages, LinkedIn, Google Search, and analysis, then merge results into one structured profile.
-- **Flexible and Customizable** – Easily adapt agents, data points, and prompts to fit your workflows, pipelines, or research needs.
+- **Configurable Data Points** – Define exactly what information to collect (company name, industry, funding, etc.) with custom descriptions for precise extraction.
+- **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn analysis, Google Search, and executive summary generation based on your needs.
+- **Smart Early Termination** – Automatically stops processing when all data points reach high confidence scores, saving time and API costs.
+- **Multi-Agent Architecture** – Specialized agents handle discovery, internal pages, LinkedIn, Google Search, and analysis, with intelligent orchestration.
+- **Confidence Scoring & Source Attribution** – Each fact includes a confidence score (1-5) and references its source for transparency and trust.
+- **Company Criteria Matching** – Evaluate companies against custom criteria with fit scores (0-10) and detailed reasoning.
 - **Realtime Progress Events** – Emits structured events during execution so you can track and display live progress.
-- **Confidence Scoring & Source Attribution** – Each fact includes a confidence score and references its source for transparency.
-- **Company Criteria Matching** – Supports custom company criteria evaluation with scoring and reasoning.
-- **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and even cookie consent banners out of the box.
-- **Built-in Orchestration** – Coordinates agents, merges results, and manages sources consistently.
+- **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and cookie consent banners.
 - **Composable Core Library** – Framework-agnostic and publishable as an npm package, ready for Node.js/TypeScript projects.
 - **Example Next.js Frontend** – Shows how to consume the library with a simple web interface and live progress updates.
 
 ## How it works
 
-Mira only requires the company's website URL as input. From there, it defines a set of data points to collect, such as company name, industry, size, funding, and recent news. Each data point is mapped to where it is most likely found: landing page, internal pages like About or Careers, LinkedIn, or Google Search. These data points can be easily customized so the system is tailored to your specific research needs. During a run, agents collect the mapped data points and the orchestrator merges them using confidence scores and source attribution.
+Mira takes a company's website URL and your configuration, then intelligently orchestrates multiple AI agents to gather comprehensive company information. You can customize exactly what data to collect and which sources to use.
 
-**Flow**
+**Configuration**
 
-1. **Discovery agent** collects data from the landing page, extracts social profiles, and identifies relevant internal pages.
-2. **Internal pages agent** scans the discovered pages and extracts mapped data points.
-3. **LinkedIn agent** gathers additional company details from LinkedIn.
-4. **Google Search agent** queries for missing or low-confidence items and extracts structured facts from results.
-5. **Company analysis agent** synthesizes the collected facts into a structured profile and, if provided, evaluates company criteria fit score with reasoning.
+- **Data Points**: Define custom data points with names and descriptions (e.g., "industry": "Primary business sector or market vertical")
+- **Sources**: Enable/disable website crawling, LinkedIn analysis, Google Search, and executive summary generation
+- **Criteria**: Optionally provide company criteria for fit scoring and evaluation
 
-**Merging and confidence**
+**Intelligent Orchestration**
 
-- Every data point includes a confidence score and a reference to its source.
-- When multiple sources provide the same field, higher confidence wins. Newer or more trusted sources can be favored based on the merge rules.
-- Realtime progress events are emitted throughout execution so you can track or display live status.
+1. **Discovery agent** analyzes the landing page, extracts social profiles, and identifies relevant internal pages
+2. **Internal pages agent** (if enabled) scans discovered pages for data points that need improvement
+3. **LinkedIn agent** (if enabled) gathers additional details, but only for missing or low-confidence data points
+4. **Google Search agent** (if enabled) queries for remaining gaps using targeted searches
+5. **Company analysis agent** (if enabled) generates executive summary and/or evaluates company criteria fit
+
+**Smart Early Termination**
+
+The system continuously monitors data point confidence scores. If all configured data points reach the minimum confidence threshold, processing automatically terminates early to save time and API costs.
+
+**Data Merging & Confidence**
+
+- Every data point includes a confidence score (1-5) and source attribution
+- When multiple sources provide the same information, higher confidence scores take precedence
+- Real-time progress events are emitted throughout execution for live status tracking
 
 ## Architecture Diagram
 
@@ -145,8 +158,8 @@ npm run dev:mira-frontend
 npm install mira-ai
 ```
 
-```bash
-import { researchCompany } from "mira-ai";
+```typescript
+import { researchCompany } from 'mira-ai';
 
 const config = {
   apiKeys: {
@@ -155,14 +168,31 @@ const config = {
   },
 };
 
-const result = await researchCompany("https://company.com", config, {
-  companyCriteria: "B2B SaaS Companies",
-  onProgress: (event) => {
-    console.log("Progress event:", event);
+const result = await researchCompany('https://company.com', config, {
+  companyCriteria: 'B2B SaaS companies with 50-200 employees',
+  enrichmentConfig: {
+    // Define custom data points to collect
+    dataPoints: [
+      { name: 'industry', description: 'Primary business sector' },
+      { name: 'employeeCount', description: 'Number of employees' },
+      { name: 'funding', description: 'Latest funding round and amount' },
+      { name: 'recentNews', description: 'Recent company news or updates' },
+    ],
+    // Configure which sources to use
+    sources: {
+      crawl: true, // Enable internal pages crawling
+      linkedin: true, // Enable LinkedIn analysis
+      google: true, // Enable Google Search
+      analysis: true, // Enable executive summary generation
+    },
+  },
+  onProgress: (type, message) => {
+    console.log(`${type}: ${message}`);
   },
 });
 
-console.log(result);
+console.log(result.enrichedCompany);
+console.log(result.companyAnalysis);
 ```
 
 ## Additional Documentation
