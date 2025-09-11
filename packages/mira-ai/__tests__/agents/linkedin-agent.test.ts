@@ -5,8 +5,18 @@
  */
 import { jest } from '@jest/globals';
 import { runLinkedInAgent } from '../../src/agents/linkedin-agent';
+import type { CustomDataPoint } from '../../src/types/company';
 
 const TEST_LINKEDIN_URL = 'https://linkedin.com/company/github';
+
+// Sample data points configuration for testing
+const TEST_DATA_POINTS: CustomDataPoint[] = [
+  { name: 'name', description: 'Company name' },
+  { name: 'industry', description: 'Industry or sector' },
+  { name: 'headquarters', description: 'Company headquarters location' },
+  { name: 'companySize', description: 'Number of employees' },
+  { name: 'employees', description: 'Employee information' },
+];
 
 jest.setTimeout(60000);
 
@@ -15,6 +25,7 @@ it('should extract company data points from LinkedIn using LLM analysis', async 
   const result = await runLinkedInAgent({
     linkedInUrl: TEST_LINKEDIN_URL,
     needs: ['name', 'industry', 'headquarters', 'companySize', 'employees'],
+    dataPoints: TEST_DATA_POINTS,
   });
 
   console.info('🔍 Agent result:', { success: result.success, error: result.error });

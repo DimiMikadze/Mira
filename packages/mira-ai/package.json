@@ -1,6 +1,6 @@
 {
   "name": "mira-ai",
-  "version": "1.0.9",
+  "version": "2.0.0",
   "description": "Agentic AI library for automated company research",
   "license": "MIT",
   "author": "Dimi Mikadze <hi@dimimikadze.com>",
@@ -41,7 +41,8 @@
     "test:internal-pages-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/internal-pages-agent.test.ts",
     "test:google-search-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/google-search-agent.test.ts",
     "test:linkedin-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/linkedin-agent.test.ts",
-    "test:company-analysis-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/company-analysis-agent.test.ts"
+    "test:company-analysis-agent": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/agents/company-analysis-agent.test.ts",
+    "test:orchestrator": "NODE_OPTIONS=--experimental-vm-modules jest __tests__/orchestrator/index.test.ts"
   },
   "dependencies": {
     "@openai/agents": "^0.0.15",

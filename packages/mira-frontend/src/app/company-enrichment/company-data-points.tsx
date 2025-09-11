@@ -1,19 +1,22 @@
 'use client';
 
+import React from 'react';
 import type { EnrichedCompany, DataPoint, LinkedInPerson } from 'mira-ai/types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Link, Building2, MapPin, DollarSign, Rocket, Package, Award, Crown, Briefcase, Calendar } from 'lucide-react';
+import { Link } from 'lucide-react';
 
 interface CompanyDataPointsProps {
   enrichedCompany: EnrichedCompany;
+  /** Optional custom data point definitions for display formatting */
+  dataPointDefinitions?: Array<{ name: string; description: string }>;
 }
 
 /**
  * Company Data Points Component
  *
- * Displays extracted company information organized into categorized sections
+ * Displays extracted company information
  */
-const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany }) => {
+const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, dataPointDefinitions }) => {
   // Returns color classes based on confidence score (1-5) - same style as fit score
   const getConfidenceColor = (score: number) => {
     if (score >= 5) return { border: 'border-green-600', text: 'text-green-700', bg: 'bg-green-100' }; // Excellent
@@ -42,74 +45,78 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany }
   };
 
   // Renders individual data points with confidence scores and source links
-  const renderDataPoints = ({
-    name,
-    dataPoint,
-    isLogo = false,
-    isEmployees = false,
-  }: {
-    name: string;
-    dataPoint: DataPoint;
-    isLogo?: boolean;
-    isEmployees?: boolean;
-  }) => {
+  const renderDataPoints = ({ name, dataPoint }: { name: string; dataPoint: DataPoint }) => {
     const confidenceColors = getConfidenceColor(Number(dataPoint.confidenceScore));
 
     const renderContent = () => {
-      if (isLogo) {
+      // Check if content is a URL pointing to an image
+      if (
+        typeof dataPoint.content === 'string' &&
+        (dataPoint.content.match(/\.(jpg|jpeg|png|gif|svg|webp)(\?.*)?$/i) ||
+          dataPoint.content.startsWith('data:image/'))
+      ) {
         return (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={dataPoint.content} width={100} alt='Company Logo' className='mt-2 border' />
+          <img src={dataPoint.content} width={100} alt={name} className='mt-2 border' />
         );
       }
 
-      if (isEmployees) {
-        let employees: LinkedInPerson[] = [];
+      // Check if content is structured employee/person data
+      if (typeof dataPoint.content === 'string') {
         try {
-          employees = JSON.parse(dataPoint.content) as LinkedInPerson[];
+          const parsed = JSON.parse(dataPoint.content);
+          if (
+            Array.isArray(parsed) &&
+            parsed.length > 0 &&
+            parsed[0]?.name &&
+            (parsed[0]?.title || parsed[0]?.photoUrl || parsed[0]?.profileUrl)
+          ) {
+            const people = parsed as LinkedInPerson[];
+            const validPeople = people.filter((person) => person?.name);
+
+            if (validPeople.length === 0) {
+              return null;
+            }
+
+            return (
+              <div className='flex flex-col gap-4 w-full'>
+                {validPeople.map((person, idx) => {
+                  const key = person.profileUrl || person.name || String(idx);
+                  return (
+                    <div className='flex items-center' key={key}>
+                      {person.photoUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={person.photoUrl as string}
+                          width={60}
+                          alt={`${person.name} photo`}
+                          className='mt-2 rounded-full'
+                        />
+                      )}
+                      <div className={person.photoUrl ? 'ml-3' : ''}>
+                        {person.profileUrl ? (
+                          <a
+                            href={person.profileUrl}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='hover:underline hover:decoration-black'
+                          >
+                            <p className='text-md'>{person.name}</p>
+                          </a>
+                        ) : (
+                          <p className='text-md'>{person.name}</p>
+                        )}
+                        {person.title && <p className='text-gray-700 text-md'>{person.title}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
         } catch {
-          employees = [];
+          // Not structured data, fall through to regular text rendering
         }
-
-        const validEmployees = Array.isArray(employees) ? employees.filter((e) => e?.name && e?.photoUrl) : [];
-
-        if (validEmployees.length === 0) {
-          return null; // 🚨 return null here
-        }
-
-        return (
-          <div className='flex flex-col gap-4 w-full'>
-            {validEmployees.map((employee, idx) => {
-              const key = employee.profileUrl || employee.name || String(idx);
-              return (
-                <div className='flex items-center' key={key}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={employee.photoUrl as string}
-                    width={60}
-                    alt={`${employee.name} photo`}
-                    className='mt-2 rounded-full'
-                  />
-                  <div className='ml-3'>
-                    {employee.profileUrl ? (
-                      <a
-                        href={employee.profileUrl}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='hover:underline hover:decoration-black'
-                      >
-                        <p className='text-md'>{employee.name}</p>
-                      </a>
-                    ) : (
-                      <p className='text-md'>{employee.name}</p>
-                    )}
-                    <p className='text-gray-700 text-md'>{employee.title}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        );
       }
 
       return <p className='text-gray-700 text-md'>{dataPoint.content}</p>;
@@ -163,204 +170,44 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany }
     );
   };
 
+  // Prepare data points for rendering
+  const dataPoints = React.useMemo(() => {
+    const dataPointsArray: Array<{ key: string; dataPoint: DataPoint; displayName: string }> = [];
+
+    Object.entries(enrichedCompany).forEach(([key, dataPoint]) => {
+      if (!dataPoint || key === 'socialMediaLinks' || key === 'googleQueries') return; // Skip empty and special fields
+      if (Array.isArray(dataPoint)) return; // Skip array values (like googleQueries)
+
+      // Find custom definition for this data point
+      const customDef = dataPointDefinitions?.find((def) => def.name === key);
+
+      // Use custom display name or format the key
+      const displayName =
+        customDef?.description?.split('.')[0] ||
+        key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+
+      dataPointsArray.push({
+        key,
+        dataPoint,
+        displayName,
+      });
+    });
+
+    return dataPointsArray;
+  }, [enrichedCompany, dataPointDefinitions]);
+
   return (
-    <div className='space-y-8'>
-      {/* Basic company information section */}
-      {(enrichedCompany.name ||
-        enrichedCompany.industry ||
-        enrichedCompany.overview ||
-        enrichedCompany.missionAndVision ||
-        enrichedCompany.toneOfVoice ||
-        enrichedCompany.companySize ||
-        enrichedCompany.logoUrl ||
-        enrichedCompany.employees) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Building2 className='w-5 h-5 mr-2' />
-            Company Overview
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.name && renderDataPoints({ name: 'Name', dataPoint: enrichedCompany.name })}
-
-            {enrichedCompany.industry && renderDataPoints({ name: 'Industry', dataPoint: enrichedCompany.industry })}
-
-            {enrichedCompany.companySize &&
-              renderDataPoints({ name: 'Company Size', dataPoint: enrichedCompany.companySize })}
-
-            {enrichedCompany.overview && renderDataPoints({ name: 'Overview', dataPoint: enrichedCompany.overview })}
-
-            {enrichedCompany.missionAndVision &&
-              renderDataPoints({ name: 'Mission Statement / Vision', dataPoint: enrichedCompany.missionAndVision })}
-
-            {enrichedCompany.toneOfVoice &&
-              renderDataPoints({ name: 'Tone / Writing Style', dataPoint: enrichedCompany.toneOfVoice })}
-
-            {enrichedCompany.logoUrl &&
-              renderDataPoints({ name: 'Company Logo', dataPoint: enrichedCompany.logoUrl, isLogo: true })}
-
-            {enrichedCompany.employees &&
-              renderDataPoints({ name: 'Employees', dataPoint: enrichedCompany.employees, isEmployees: true })}
+    <div className='space-y-6'>
+      {dataPoints.map(({ key, dataPoint, displayName }) => {
+        return (
+          <div key={key}>
+            {renderDataPoints({
+              name: displayName,
+              dataPoint,
+            })}
           </div>
-        </div>
-      )}
-
-      {/* Geographic presence and office locations */}
-      {(enrichedCompany.headquarters || enrichedCompany.officeLocations || enrichedCompany.marketPresence) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <MapPin className='w-5 h-5 mr-2' />
-            Locations and Operations
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.headquarters &&
-              renderDataPoints({ name: 'Main Location', dataPoint: enrichedCompany.headquarters })}
-
-            {enrichedCompany.officeLocations &&
-              renderDataPoints({ name: 'Office Locations', dataPoint: enrichedCompany.officeLocations })}
-
-            {enrichedCompany.marketPresence &&
-              renderDataPoints({ name: 'Presence in regions', dataPoint: enrichedCompany.marketPresence })}
-          </div>
-        </div>
-      )}
-
-      {/* Funding and investment information */}
-      {(enrichedCompany.totalFunding || enrichedCompany.recentFunding || enrichedCompany.investors) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <DollarSign className='w-5 h-5 mr-2' />
-            Financials
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.totalFunding &&
-              renderDataPoints({ name: 'Total Funding', dataPoint: enrichedCompany.totalFunding })}
-
-            {enrichedCompany.recentFunding &&
-              renderDataPoints({ name: 'Recent Funding', dataPoint: enrichedCompany.recentFunding })}
-
-            {enrichedCompany.investors && renderDataPoints({ name: 'Investors', dataPoint: enrichedCompany.investors })}
-          </div>
-        </div>
-      )}
-
-      {/* Expansion plans and technology stack */}
-      {(enrichedCompany.acquisitions || enrichedCompany.expansionPlans || enrichedCompany.technologyStack) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Rocket className='w-5 h-5 mr-2' />
-            Growth & Business Development
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.acquisitions &&
-              renderDataPoints({ name: 'Acquisitions', dataPoint: enrichedCompany.acquisitions })}
-
-            {enrichedCompany.expansionPlans &&
-              renderDataPoints({ name: 'Expansion Plans', dataPoint: enrichedCompany.expansionPlans })}
-
-            {enrichedCompany.technologyStack &&
-              renderDataPoints({ name: 'Technology Stack', dataPoint: enrichedCompany.technologyStack })}
-          </div>
-        </div>
-      )}
-
-      {/* Product offerings and customer information */}
-      {(enrichedCompany.newProductLaunch ||
-        enrichedCompany.targetCustomerSegment ||
-        enrichedCompany.clients ||
-        enrichedCompany.caseStudies ||
-        enrichedCompany.customerTestimonials) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Package className='w-5 h-5 mr-2' />
-            Products and Customers
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.newProductLaunch &&
-              renderDataPoints({ name: 'New Product(s) Launch', dataPoint: enrichedCompany.newProductLaunch })}
-
-            {enrichedCompany.targetCustomerSegment &&
-              renderDataPoints({ name: 'Target Customers', dataPoint: enrichedCompany.targetCustomerSegment })}
-
-            {enrichedCompany.clients && renderDataPoints({ name: 'Clients', dataPoint: enrichedCompany.clients })}
-
-            {enrichedCompany.caseStudies &&
-              renderDataPoints({ name: 'Case Studies', dataPoint: enrichedCompany.caseStudies })}
-
-            {enrichedCompany.customerTestimonials &&
-              renderDataPoints({ name: 'Customer Testimonials', dataPoint: enrichedCompany.customerTestimonials })}
-          </div>
-        </div>
-      )}
-
-      {/* External relationships and achievements */}
-      {(enrichedCompany.partnerships || enrichedCompany.pressMediaMentions || enrichedCompany.awardsCertifications) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Award className='w-5 h-5 mr-2' />
-            Partnerships and Recognition
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.partnerships &&
-              renderDataPoints({ name: 'Partnerships', dataPoint: enrichedCompany.partnerships })}
-
-            {enrichedCompany.pressMediaMentions &&
-              renderDataPoints({ name: 'Press / Media Mentions', dataPoint: enrichedCompany.pressMediaMentions })}
-
-            {enrichedCompany.awardsCertifications &&
-              renderDataPoints({ name: 'Awards / Certifications', dataPoint: enrichedCompany.awardsCertifications })}
-          </div>
-        </div>
-      )}
-
-      {/* Company leadership and hiring information */}
-      {(enrichedCompany.leadership || enrichedCompany.newExecutiveHires) && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Crown className='w-5 h-5 mr-2' />
-            Leadership and Team
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.leadership &&
-              renderDataPoints({ name: 'Founders / Key People', dataPoint: enrichedCompany.leadership })}
-
-            {enrichedCompany.newExecutiveHires &&
-              renderDataPoints({ name: 'New Executive Hires', dataPoint: enrichedCompany.newExecutiveHires })}
-          </div>
-        </div>
-      )}
-
-      {/* Open positions and hiring */}
-      {enrichedCompany.openJobs && (
-        <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Briefcase className='w-5 h-5 mr-2' />
-            Careers
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.openJobs && renderDataPoints({ name: 'Open Jobs', dataPoint: enrichedCompany.openJobs })}
-          </div>
-        </div>
-      )}
-
-      {/* Conference participation and events */}
-      {(enrichedCompany.upcomingEvents || enrichedCompany.recentEventParticipation) && (
-        <div>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Calendar className='w-5 h-5 mr-2' />
-            Events
-          </h3>
-          <div className='pb-6'>
-            {enrichedCompany.upcomingEvents &&
-              renderDataPoints({ name: 'Upcoming Events', dataPoint: enrichedCompany.upcomingEvents })}
-
-            {enrichedCompany.recentEventParticipation &&
-              renderDataPoints({
-                name: 'Recent Event Participation',
-                dataPoint: enrichedCompany.recentEventParticipation,
-              })}
-          </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };

@@ -55,5 +55,5 @@ it('should scrape LinkedIn company page and extract structured data', async () =
     )
   );
 
-  console.log(`✅ Scraper test passed. Result saved to: ${fixturePath}`);
+  console.info(`✅ Scraper test passed. Result saved to: ${fixturePath}`);
 });

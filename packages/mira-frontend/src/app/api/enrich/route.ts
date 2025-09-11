@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Company Enrichment API Endpoint
  *
@@ -9,7 +11,7 @@ import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { url, companyCriteria } = await request.json();
+    const { url, companyCriteria, sources, dataPoints } = await request.json();
 
     if (!url) {
       return new Response('URL is required', { status: 400 });
@@ -54,10 +56,22 @@ export async function POST(request: NextRequest) {
             },
           };
 
+          // Default enrichment configuration with all available data points
+          const enrichmentConfig = {
+            dataPoints,
+            sources: {
+              crawl: sources?.crawl,
+              linkedin: sources?.linkedin,
+              google: sources?.google,
+              analysis: sources?.analysis,
+            },
+          };
+
           // Run enrichment with progress callback
           const result = await researchCompany(url, config, {
             companyCriteria,
             onProgress,
+            enrichmentConfig,
           });
 
           // Send final result - message will come from orchestrator

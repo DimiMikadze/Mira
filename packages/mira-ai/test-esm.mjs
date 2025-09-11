@@ -8,6 +8,6 @@ const config = {
   },
 };
 
-console.log('✅ ESM Import successful!');
-console.log('researchCompany function:', typeof researchCompany);
-console.log('Function details:', researchCompany.toString().substring(0, 100) + '...');
+console.info('✅ ESM Import successful!');
+console.info('researchCompany function:', typeof researchCompany);
+console.info('Function details:', researchCompany.toString().substring(0, 100) + '...');

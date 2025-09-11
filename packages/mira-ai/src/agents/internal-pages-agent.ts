@@ -1,8 +1,7 @@
 import { Agent, run } from '@openai/agents';
-import { AGENT_CONFIGS } from '../constants/agent-config.js';
+import { AGENT_CONFIGS, MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/agent-config.js';
 import { scrape } from '../services/scraper.js';
-import { DATA_POINT_PAGE_MAPPING, DATA_POINT_DESCRIPTIONS } from '../constants/data-points.js';
-import { createDataPointsSchema, DataPoint } from '../types/company.js';
+import { createDataPointsSchema, DataPoint, CustomDataPoint } from '../types/company.js';
 import { InternalPageType, DiscoveryOutput } from '../types/agent.js';
 import { createInternalPagePrompt, INTERNAL_PAGE_AGENT_INSTRUCTIONS } from '../constants/prompts.js';
 
@@ -21,9 +20,7 @@ type PageExtractionResult = {
 };
 
 // Creates a specialized agent for extracting data from a specific page type
-const createInternalPageAgent = (pageType: InternalPageType) => {
-  const dataPointKeys = DATA_POINT_PAGE_MAPPING[pageType];
-
+const createInternalPageAgent = (pageType: InternalPageType, dataPointKeys: string[]) => {
   return new Agent({
     name: `${pageType} Page Extraction Agent`,
     model: AGENT_CONFIGS.internalPages.model,
@@ -76,13 +73,19 @@ const mergeDataPointsPreferHigherConfidence = (
 };
 
 // Builds formatted descriptions for data points to guide extraction
-const buildDataPointDescriptions = (keys: string[]) =>
-  keys.map((k) => `- ${k}: ${DATA_POINT_DESCRIPTIONS[k]}`).join('\n');
+const buildDataPointDescriptions = (dataPoints: CustomDataPoint[], keys: string[]) =>
+  dataPoints
+    .filter((dp) => keys.includes(dp.name))
+    .map((dp) => `- ${dp.name}: ${dp.description}`)
+    .join('\n');
 
 // Scrapes and extracts data from a single internal page
 const extractFromInternalPage = async (
   pageType: InternalPageType,
-  pageUrl: string
+  pageUrl: string,
+  dataPoints: CustomDataPoint[],
+  baseDataPoints: Record<string, DataPoint | undefined>,
+  minimumConfidenceThreshold: number = MINIMUM_CONFIDENCE_THRESHOLD
 ): Promise<PageExtractionResult | null> => {
   try {
     console.info(`[InternalPagesAgent][extract] start ${pageType} → ${pageUrl}`);
@@ -98,9 +101,26 @@ const extractFromInternalPage = async (
       `[InternalPagesAgent][extract] scraped ${pageType} (${pageUrl}) contentLen=${content.length.toLocaleString()}`
     );
 
-    const keys = DATA_POINT_PAGE_MAPPING[pageType];
-    const descriptions = buildDataPointDescriptions(keys);
-    const agent = createInternalPageAgent(pageType);
+    // Filter to only data points that need improvement (missing or low confidence)
+    const neededDataPoints = dataPoints.filter((dp) => {
+      const existing = baseDataPoints[dp.name];
+      return !existing || existing.confidenceScore < minimumConfidenceThreshold;
+    });
+
+    if (neededDataPoints.length === 0) {
+      console.info(
+        `[InternalPagesAgent][extract] ${pageType} - all data points already have high confidence, skipping`
+      );
+      return { pageType, extracted: {}, sourceUrl: pageUrl };
+    }
+
+    const keys = neededDataPoints.map((dp) => dp.name);
+    const descriptions = buildDataPointDescriptions(neededDataPoints, keys);
+
+    console.info(
+      `[InternalPagesAgent][extract] ${pageType} - processing ${keys.length} data points: ${keys.join(', ')}`
+    );
+    const agent = createInternalPageAgent(pageType, keys);
 
     const prompt = createInternalPagePrompt(pageType, keys, descriptions, pageUrl, content);
 
@@ -123,7 +143,7 @@ const extractFromInternalPage = async (
  * Processes all discovered internal pages in parallel and merges
  * the extracted data with existing discovery results.
  */
-export const runInternalPagesAgent = async (input: DiscoveryOutput) => {
+export const runInternalPagesAgent = async (input: DiscoveryOutput, dataPoints: CustomDataPoint[]) => {
   try {
     console.info('[InternalPagesAgent] begin run');
     const baseDataPoints = { ...input.dataPoints };
@@ -146,7 +166,9 @@ export const runInternalPagesAgent = async (input: DiscoveryOutput) => {
     );
 
     // Process all internal pages concurrently
-    const results = await Promise.all(targets.map(({ pageType, url }) => extractFromInternalPage(pageType, url)));
+    const results = await Promise.all(
+      targets.map(({ pageType, url }) => extractFromInternalPage(pageType, url, dataPoints, baseDataPoints))
+    );
 
     // Merge results with discovery data, preferring higher confidence scores
     let merged = { ...baseDataPoints } as Record<string, DataPoint>;

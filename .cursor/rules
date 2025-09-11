@@ -1,14 +1,15 @@
 # Mira - AI Company Research Tool (Monorepo)
 
-Agentic AI library for company research that automatically analyzes companies by scraping their websites, social media, and public information. Uses 5 specialized AI agents to extract comprehensive business intelligence.
+Agentic AI library that automates company research with configurable data points and intelligent source selection. Features modular orchestration, smart early termination, and confidence-based data merging.
 
 **Key Features:**
 
-- Agentic AI library for deep company analysis
-- Real-time web scraping with intelligent content extraction
-- LinkedIn and Google search integration
-- Company criteria-based analysis
-- Server-sent events for live progress tracking
+- Configurable data points with custom descriptions for precise extraction
+- Intelligent source selection (website crawling, LinkedIn, Google Search, analysis)
+- Smart early termination when confidence thresholds are met
+- Modular orchestrator with separated concerns (context, flow, termination, results)
+- Real-time progress tracking with structured events
+- Company criteria evaluation with fit scoring (0-10)
 
 **MONOREPO STRUCTURE**:
 

@@ -6,6 +6,7 @@
 import { jest } from '@jest/globals';
 import { runInternalPagesAgent } from '../../src/agents/internal-pages-agent';
 import type { DiscoveryOutput } from '../../src/types/agent';
+import type { CustomDataPoint } from '../../src/types/company';
 
 // Sample discovery output with real internal pages to test with
 const TEST_DISCOVERY_OUTPUT: DiscoveryOutput = {
@@ -21,11 +22,20 @@ const TEST_DISCOVERY_OUTPUT: DiscoveryOutput = {
   },
 };
 
+// Sample data points configuration for testing
+const TEST_DATA_POINTS: CustomDataPoint[] = [
+  { name: 'name', description: 'Company name' },
+  { name: 'description', description: 'Company description' },
+  { name: 'industry', description: 'Industry or sector' },
+  { name: 'headquarters', description: 'Company headquarters location' },
+  { name: 'foundedYear', description: 'Year the company was founded' },
+];
+
 jest.setTimeout(60000);
 
 it('should extract additional data points from internal pages', async () => {
-  // Test agent with sample discovery output
-  const result = await runInternalPagesAgent(TEST_DISCOVERY_OUTPUT);
+  // Test agent with sample discovery output and data points
+  const result = await runInternalPagesAgent(TEST_DISCOVERY_OUTPUT, TEST_DATA_POINTS);
 
   console.info('🔍 Agent result:', { success: result.success, error: result.error });
 

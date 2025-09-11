@@ -77,5 +77,5 @@ it('should scrape website and extract structured content', async () => {
     )
   );
 
-  console.log(`✅ Scraper test passed. Result saved to: ${fixturePath}`);
+  console.info(`✅ Scraper test passed. Result saved to: ${fixturePath}`);
 });
