@@ -1,4 +1,5 @@
 import { getExecutionTime } from '../utils.js';
+import { MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/index.js';
 import type { EnrichedCompany, EnrichmentConfig } from '../types/company.js';
 import type { CompanyAnalysis } from '../types/company-analysis.js';
 import { createProgressReporter, countMeaningfulDataPoints, type ProgressCallback } from './progress-manager.js';
@@ -129,7 +130,7 @@ const tryEarlyTermination = async (
     let companyAnalysis: CompanyAnalysis | undefined;
     const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
     const shouldRunAnalysis = hasCriteria || analysisEnabled;
-    
+
     if (shouldRunAnalysis) {
       progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
       const enrichedCompany: EnrichedCompany = { ...baseDataPoints };
@@ -189,7 +190,12 @@ export const researchCompany = async (
   process.env.SCRAPING_BEE_API_KEY = config.apiKeys.scrapingBeeApiKey;
 
   const startTime = Date.now();
-  const { companyCriteria, onProgress, enrichmentConfig, minimumConfidenceThreshold = 4 } = options || {};
+  const {
+    companyCriteria,
+    onProgress,
+    enrichmentConfig,
+    minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD,
+  } = options || {};
   const sourcesConfig = {
     crawl: enrichmentConfig?.sources?.crawl ?? false,
     google: enrichmentConfig?.sources?.google ?? false,
@@ -371,7 +377,7 @@ export const researchCompany = async (
   let companyAnalysis: CompanyAnalysis | undefined;
   const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
   const shouldRunAnalysis = hasCriteria || sourcesConfig.analysis;
-  
+
   if (shouldRunAnalysis) {
     progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
     const enrichedCompany: EnrichedCompany = { ...baseDataPoints };

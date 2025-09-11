@@ -1,5 +1,5 @@
 import { Agent, run } from '@openai/agents';
-import { AGENT_CONFIGS } from '../constants/agent-config.js';
+import { AGENT_CONFIGS, MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/agent-config.js';
 import { scrape } from '../services/scraper.js';
 import {
   createDataPointsSchema,
@@ -134,7 +134,7 @@ export const runDiscoveryAgent = async (
     let discoveryPagesAndQueriesResponse = null;
     if (includeCrawl || includeGoogleQueries) {
       // Filter to only data points that weren't successfully extracted or have low confidence
-      const minimumConfidenceThreshold = 4;
+      const minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD;
       const neededDataPoints = requestedDataPoints.filter((dp) => {
         const existing = dataPoints[dp.name];
         return !existing || existing.confidenceScore < minimumConfidenceThreshold;

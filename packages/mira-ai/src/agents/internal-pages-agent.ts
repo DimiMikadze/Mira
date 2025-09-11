@@ -1,5 +1,5 @@
 import { Agent, run } from '@openai/agents';
-import { AGENT_CONFIGS } from '../constants/agent-config.js';
+import { AGENT_CONFIGS, MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/agent-config.js';
 import { scrape } from '../services/scraper.js';
 import { createDataPointsSchema, DataPoint, CustomDataPoint } from '../types/company.js';
 import { InternalPageType, DiscoveryOutput } from '../types/agent.js';
@@ -85,7 +85,7 @@ const extractFromInternalPage = async (
   pageUrl: string,
   dataPoints: CustomDataPoint[],
   baseDataPoints: Record<string, DataPoint | undefined>,
-  minimumConfidenceThreshold: number = 4
+  minimumConfidenceThreshold: number = MINIMUM_CONFIDENCE_THRESHOLD
 ): Promise<PageExtractionResult | null> => {
   try {
     console.info(`[InternalPagesAgent][extract] start ${pageType} → ${pageUrl}`);

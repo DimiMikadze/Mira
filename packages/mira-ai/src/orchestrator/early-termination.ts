@@ -1,4 +1,5 @@
 import type { DataPoint, CustomDataPoint } from '../types/company.js';
+import { MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/index.js';
 
 /**
  * Checks if all configured data points have reached the minimum confidence threshold
@@ -6,7 +7,7 @@ import type { DataPoint, CustomDataPoint } from '../types/company.js';
 export const shouldTerminateEarly = (
   currentDataPoints: Record<string, DataPoint | undefined>,
   configuredDataPoints: CustomDataPoint[],
-  minimumConfidenceThreshold: number = 4
+  minimumConfidenceThreshold: number = MINIMUM_CONFIDENCE_THRESHOLD
 ): boolean => {
   const configuredKeys = configuredDataPoints.map((dp) => dp.name);
 
@@ -29,7 +30,7 @@ export const shouldTerminateEarly = (
 export const getCompletionStats = (
   currentDataPoints: Record<string, DataPoint | undefined>,
   configuredDataPoints: CustomDataPoint[],
-  minimumConfidenceThreshold: number = 4
+  minimumConfidenceThreshold: number = MINIMUM_CONFIDENCE_THRESHOLD
 ): {
   total: number;
   completed: number;
@@ -73,7 +74,7 @@ export const getCompletionStats = (
 export const getIncompleteDataPoints = (
   currentDataPoints: Record<string, DataPoint | undefined>,
   configuredDataPoints: CustomDataPoint[],
-  minimumConfidenceThreshold: number = 4
+  minimumConfidenceThreshold: number = MINIMUM_CONFIDENCE_THRESHOLD
 ): string[] => {
   const configuredKeys = configuredDataPoints.map((dp) => dp.name);
 
