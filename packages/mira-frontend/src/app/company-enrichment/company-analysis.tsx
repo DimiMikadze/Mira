@@ -58,10 +58,6 @@ const CompanyAnalysis: React.FC<CompanyAnalysisProps> = ({ companyAnalysis }) =>
       {/* Actionable Insights Section */}
       {companyAnalysis?.executiveSummary && (
         <div className='border-b border-gray-200'>
-          <h3 className='text-lg font-semibold mb-6 flex items-center'>
-            <Lightbulb className='w-5 h-5 mr-2' />
-            Actionable Insights
-          </h3>
           <div className='pb-6'>
             {companyAnalysis?.executiveSummary && (
               <div className='group pb-2 pt-2 first:pt-0'>
