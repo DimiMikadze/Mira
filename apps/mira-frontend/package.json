@@ -7,9 +7,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/dimimikadze/mira.git",
-    "directory": "packages/mira-frontend"
+    "directory": "apps/mira-frontend"
   },
-  "homepage": "https://github.com/dimimikadze/mira/tree/main/packages/mira-frontend#readme",
+  "homepage": "https://github.com/dimimikadze/mira/tree/main/apps/mira-frontend#readme",
   "bugs": {
     "url": "https://github.com/dimimikadze/mira/issues"
   },
@@ -20,7 +20,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "mira-ai": "file:../mira-ai",
+    "mira-ai": "file:../../packages/mira-ai",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-dropdown-menu": "^2.1.15",
     "@radix-ui/react-slot": "^1.2.3",

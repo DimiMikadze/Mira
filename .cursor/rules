@@ -14,7 +14,7 @@ Agentic AI library that automates company research with configurable data points
 **MONOREPO STRUCTURE**:
 
 - `packages/mira-ai/` - Core TypeScript library (reusable npm package)
-- `packages/mira-frontend/` - Next.js 15 frontend application
+- `apps/mira-frontend/` - Next.js 15 frontend application
 
 ## Code Style & Naming
 

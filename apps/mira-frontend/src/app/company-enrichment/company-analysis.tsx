@@ -1,7 +1,7 @@
 'use client';
 
 import type { CompanyAnalysis as CompanyAnalysisType, CompanyAnalysisWithCriteria } from 'mira-ai/types';
-import { Target, Lightbulb } from 'lucide-react';
+import { Target } from 'lucide-react';
 
 interface CompanyAnalysisProps {
   companyAnalysis: CompanyAnalysisType | null;
