@@ -5,7 +5,8 @@
   "license": "MIT",
   "author": "Dimi Mikadze <hi@dimimikadze.com>",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "build:mira-ai": "npm run build --workspace=mira-ai",
@@ -13,7 +14,7 @@
     "build": "npm run build:mira-ai && npm run build:mira-frontend",
     "dev:mira-ai": "npm run dev --workspace=mira-ai",
     "dev:mira-frontend": "npm run build:mira-ai && npm run dev --workspace=mira-frontend",
-    "clean": "npm run clean --workspace=mira-ai && rimraf packages/*/node_modules packages/*/package-lock.json node_modules package-lock.json"
+    "clean": "npm run clean --workspace=mira-ai && rimraf packages/*/node_modules apps/*/node_modules packages/*/package-lock.json apps/*/package-lock.json node_modules package-lock.json"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",

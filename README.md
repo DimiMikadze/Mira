@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="packages/mira-frontend/public/logo.svg" alt="Mira Logo" width="300" />
+  <img src="apps/mira-frontend/public/logo.svg" alt="Mira Logo" width="300" />
 </p>
 
 <p align="center">Agentic AI Library for Company Research</p>
@@ -91,7 +91,7 @@ The system continuously monitors data point confidence scores. If all configured
 - **Zod** – runtime schema validation and input/output type enforcement.
 - **Jest** – testing framework for validating services and agents individually.
 
-### Frontend UI Demo (`packages/mira-frontend`)
+### Frontend UI Demo (`apps/mira-frontend`)
 
 - **Next.js** – demo interface to run research and display results.
 - **TypeScript** – Consumes core library types.
@@ -110,7 +110,7 @@ The system continuously monitors data point confidence scores. If all configured
 
 Mira requires API keys to function. Environment files are used to separate configuration for local development and testing.
 
-- `packages/mira-frontend/.env.local` — used when running the demo frontend.
+- `apps/mira-frontend/.env.local` — used when running the demo frontend.
 - `packages/mira-ai/.env.test` — used when running tests in the core library.
 
 For both cases, the `.env` files should look like this:
@@ -139,7 +139,7 @@ cd mira
 npm install
 ```
 
-Create packages/mira-frontend/.env.local:
+Create apps/mira-frontend/.env.local:
 
 ```bash
 OPENAI_API_KEY=sk-xxxx
@@ -200,7 +200,7 @@ console.log(result.companyAnalysis);
 This monorepo contains two main packages, each with its own README that provides a deeper look into architecture and usage:
 
 - **[Mira Core Library](./packages/mira-ai/README.md)** — Node.js/TypeScript library with agents, services, and orchestration logic.
-- **[Mira Frontend](./packages/mira-frontend/README.md)** — Next.js demo UI for running research and visualizing results.
+- **[Mira Frontend](./apps/mira-frontend/README.md)** — Next.js demo UI for running research and visualizing results.
 
 ## AI-Assisted Development
 
