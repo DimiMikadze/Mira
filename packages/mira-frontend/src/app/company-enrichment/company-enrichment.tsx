@@ -37,10 +37,10 @@ const CompanyEnrichment = () => {
   const [companyCriteria, setCompanyCriteria] = useState<string>('');
   const [companyCriteriaLoaded, setCompanyCriteriaLoaded] = useState(false);
   const [sourcesConfig] = useState<EnrichmentSources>({
-    crawl: false,
-    linkedin: false,
+    crawl: true,
+    linkedin: true,
     google: true,
-    analysis: false,
+    analysis: true,
   });
   const [dataPoints] = useState<CustomDataPoint[]>([
     {
