@@ -1,51 +1,47 @@
 # Mira AI Core Library Rules
 
-## Architecture: Agentic AI System
+## Architecture: Modular Orchestrator + Agents
 
-The Mira AI core uses 5 specialized AI agents orchestrated in sequence:
+### Orchestrator Modules (`src/orchestrator/`)
 
-### 1. Discovery Agent
+- **`enrichment-context.ts`** - Setup, configuration, and context management
+- **`enrichment-flow.ts`** - Step-by-step execution and coordination logic
+- **`early-termination.ts`** - Smart stopping when confidence thresholds are met
+- **`result-builder.ts`** - Final result compilation and formatting
+- **`agent-coordinator.ts`** - Agent execution wrappers and interfaces
+- **`data-merger.ts`** - Confidence-based data point merging
+- **`progress-manager.ts`** - Real-time progress event generation
+- **`sources-manager.ts`** - Source URL tracking and deduplication
 
-- Initial website analysis and page discovery
-- Extracts company data and finds internal pages
-- Returns: `{ dataPoints, internalPages, socialMediaLinks, finalURL }`
+### AI Agents (`src/agents/`)
 
-### 2. Internal Pages Agent
+1. **Discovery Agent** - Landing page analysis, finds internal pages and social links, generates Google search queries (if enabled)
+2. **Internal Pages Agent** - Targeted extraction from About/Careers pages (only for missing data)
+3. **LinkedIn Agent** - Company profile analysis (only for missing/low-confidence data)
+4. **Google Search Agent** - Targeted searches for remaining gaps
+5. **Company Analysis Agent** - Executive summary and/or criteria fit scoring
 
-- Deep analysis of discovered internal pages
-- Scrapes About Us, Careers, Team pages
-- Returns: `{ dataPoints }` with enriched information
+## Key Concepts
 
-### 3. LinkedIn Agent
-
-- LinkedIn company profile analysis
-- Extracts employee count, industry, description
-- Returns: `{ dataPoints }` with LinkedIn insights
-
-### 4. Google Search Agent
-
-- Additional web research and news analysis
-- Analyzes search results for company mentions
-- Returns: `{ dataPoints }` with web intelligence
-
-### 5. Company Analysis Agent
-
-- Final synthesis considering company criteria
-- Generates executive summary
-- Returns: Final enriched company profile
+- **Configurable Data Points** - Define custom `{ name, description }` pairs for extraction
+- **Intelligent Source Selection** - Enable/disable crawling, LinkedIn, Google, analysis
+- **Smart Early Termination** - Auto-stop when all data points reach confidence thresholds
+- **Confidence-Based Merging** - Higher confidence scores (1-5) take precedence
+- **Targeted Processing** - Only process missing/low-confidence data in later steps
 
 ## Library Development
 
 - Export everything through src/index.ts
-- Use proper TypeScript types for all exports
+- Use proper TypeScript types, avoid `any`
+- Keep orchestrator modules focused on single responsibilities
 - Handle errors with descriptive messages
 
 ## API Design
 
-- Accept config objects, not individual parameters
-- Return structured results with consistent shape
+- Accept config objects with `enrichmentConfig: { dataPoints, sources }`
+- Return structured results with `{ enrichedCompany, companyAnalysis }`
 - Use Zod schemas for validation
-- Set process.env in researchCompany, don't pass config through every function
+- Set process.env in enrichment-context.ts, not throughout the codebase
 
 ## Testing
 
