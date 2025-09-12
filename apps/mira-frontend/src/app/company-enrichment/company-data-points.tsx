@@ -2,6 +2,7 @@
 
 import React from 'react';
 import type { EnrichedCompany, DataPoint, LinkedInEmployee, LinkedInPost } from 'mira-ai/types';
+import { SPECIAL_DATA_POINTS } from 'mira-ai/types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Link } from 'lucide-react';
 
@@ -214,10 +215,18 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
       // Find custom definition for this data point
       const customDef = dataPointDefinitions?.find((def) => def.name === key);
 
-      // Use custom display name or format the key
-      const displayName =
-        customDef?.description?.split('.')[0] ||
-        key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+      // Handle special data points with custom display names
+      let displayName: string;
+      if (key === SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES) {
+        displayName = 'Employees';
+      } else if (key === SPECIAL_DATA_POINTS.LINKEDIN_POSTS) {
+        displayName = 'LinkedIn Posts';
+      } else {
+        // Use custom display name or format the key
+        displayName =
+          customDef?.description?.split('.')[0] ||
+          key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
+      }
 
       dataPointsArray.push({
         key,
