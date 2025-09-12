@@ -4,7 +4,7 @@ import React from 'react';
 import type { EnrichedCompany, DataPoint, LinkedInEmployee, LinkedInPost } from 'mira-ai/types';
 import { SPECIAL_DATA_POINTS } from 'mira-ai/types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Link } from 'lucide-react';
+import { Link, Copy, Check } from 'lucide-react';
 
 interface CompanyDataPointsProps {
   enrichedCompany: EnrichedCompany;
@@ -45,11 +45,29 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
     }
   };
 
+  // Copy helper
+  const handleCopy = (value: unknown) => {
+    try {
+      const text = typeof value === 'string' ? value : value == null ? '' : JSON.stringify(value, null, 2);
+      void navigator.clipboard?.writeText(text);
+    } catch {
+      // no-op
+    }
+  };
+
   // Renders individual data points with confidence scores and source links
   const renderDataPoints = ({ name, dataPoint }: { name: string; dataPoint: DataPoint }) => {
     const confidenceColors = getConfidenceColor(Number(dataPoint.confidenceScore));
 
     const renderContent = () => {
+      // Handle logo URL special data point
+      if (name === 'Logo' && typeof dataPoint.content === 'string') {
+        return (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={dataPoint.content} width={120} alt='Company Logo' className='mt-2 border rounded' />
+        );
+      }
+
       // Check if content is a URL pointing to an image
       if (
         typeof dataPoint.content === 'string' &&
@@ -163,14 +181,12 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
 
     return (
       <div className='group pb-2 pt-2 first:pt-0 '>
-        <h3 className='whitespace-nowrap text-md font-semibold'>{name}</h3>
-
-        <div className='flex items-start'>
-          {content}
-          <div className='flex items-center ml-4 invisible group-hover:visible'>
+        <div className='flex items-center mb-2'>
+          <h3 className='whitespace-nowrap text-md font-semibold'>{name}</h3>
+          <div className='flex items-center ml-4 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity'>
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className='ml-4 w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition-colors'>
+                <div className='ml-0 w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition-colors'>
                   <a
                     href={dataPoint.source}
                     target='_blank'
@@ -198,8 +214,29 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
                 <p className='text-xs opacity-80'>{getConfidenceDescription(Number(dataPoint.confidenceScore))}</p>
               </TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type='button'
+                  onClick={() => handleCopy(dataPoint.content)}
+                  className='ml-2 w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center 
+                 hover:border-gray-400 transition-colors cursor-pointer
+                 [&:active_svg.copy-icon]:hidden [&:active_svg.check-icon]:block
+                 [&:focus_svg.copy-icon]:hidden [&:focus_svg.check-icon]:block'
+                  aria-label='Copy data point'
+                >
+                  <Copy className='copy-icon w-4 h-4 text-gray-600 block' />
+                  <Check className='check-icon w-4 h-4 text-green-600 hidden' />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className='text-xs opacity-80'>Copy content</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
+
+        <div className='flex items-start'>{content}</div>
       </div>
     );
   };
@@ -221,6 +258,8 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
         displayName = 'Employees';
       } else if (key === SPECIAL_DATA_POINTS.LINKEDIN_POSTS) {
         displayName = 'LinkedIn Posts';
+      } else if (key === SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL) {
+        displayName = 'Logo';
       } else {
         // Use custom display name or format the key
         displayName =

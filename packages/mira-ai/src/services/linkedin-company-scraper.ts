@@ -526,9 +526,9 @@ const processLinkedInContent = (rawHtml: string): LinkedInCompanyData => {
   return {
     content: finalContent,
     ...structuredInfo,
-    ...(logoUrl && { logoUrl }),
     ...(employees.length > 0 && { LINKEDIN_EMPLOYEES: employees }),
     ...(posts.length > 0 && { LINKEDIN_POSTS: posts }),
+    ...(logoUrl && { LINKEDIN_LOGO_URL: logoUrl }),
   };
 };
 

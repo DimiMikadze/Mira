@@ -18,6 +18,7 @@ const TEST_DATA_POINTS: CustomDataPoint[] = [
   { name: 'companySize', description: 'Number of employees' },
   { name: SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES, description: 'Employee information extracted from LinkedIn' },
   { name: SPECIAL_DATA_POINTS.LINKEDIN_POSTS, description: 'LinkedIn posts extracted from company page' },
+  { name: SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL, description: 'Company logo URL extracted from LinkedIn' },
 ];
 
 jest.setTimeout(60000);
@@ -33,6 +34,7 @@ it('should extract company data points from LinkedIn using LLM analysis', async 
       'companySize',
       SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES,
       SPECIAL_DATA_POINTS.LINKEDIN_POSTS,
+      SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL,
     ],
     dataPoints: TEST_DATA_POINTS,
   });
@@ -61,6 +63,7 @@ it('should extract company data points from LinkedIn using LLM analysis', async 
   // Test special data points specifically
   const linkedinEmployees = result.extracted[SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES];
   const linkedinPosts = result.extracted[SPECIAL_DATA_POINTS.LINKEDIN_POSTS];
+  const linkedinLogoUrl = result.extracted[SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL];
 
   if (linkedinEmployees) {
     expect(linkedinEmployees.confidenceScore).toBe(5); // Should have max confidence from scraper
@@ -82,6 +85,13 @@ it('should extract company data points from LinkedIn using LLM analysis', async 
       expect(post).toHaveProperty('timeAgo');
       expect(post).toHaveProperty('text');
     });
+  }
+
+  if (linkedinLogoUrl) {
+    expect(linkedinLogoUrl.confidenceScore).toBe(5); // Should have max confidence from scraper
+    expect(typeof linkedinLogoUrl.content).toBe('string');
+    expect(linkedinLogoUrl.content.startsWith('http')).toBe(true); // Should be a valid URL
+    console.info(`🖼️ Found LinkedIn logo URL: ${linkedinLogoUrl.content}`);
   }
 
   console.info(

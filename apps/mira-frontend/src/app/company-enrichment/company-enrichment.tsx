@@ -98,8 +98,8 @@ const CompanyEnrichment = () => {
         'Number of employees or company size range (e.g., "50-200 employees", "500+ team members", "1,000-5,000 employees").',
     },
     {
-      name: 'logoUrl',
-      description: 'Company logo URL extracted from LinkedIn profile. Direct link to the company logo image.',
+      name: SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL,
+      description: 'Company Logo. Direct link to the company logo image extracted from LinkedIn profile.',
     },
     {
       name: SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES,
@@ -251,7 +251,6 @@ const CompanyEnrichment = () => {
             if (line.startsWith('data: ')) {
               try {
                 const event = JSON.parse(line.slice(6));
-                console.info('[SSE] Received event:', event);
 
                 // Handle dynamic messages from orchestrator
                 if (event.message) {
@@ -291,6 +290,8 @@ const CompanyEnrichment = () => {
                 }
               } catch (error) {
                 console.error('[SSE] Error parsing event:', error);
+                console.error('[SSE] Problematic line:', line);
+                // Try to continue processing other events
               }
             }
           }

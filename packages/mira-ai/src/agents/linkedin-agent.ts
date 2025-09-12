@@ -103,7 +103,7 @@ export const runLinkedInAgent = async (input: LinkedInAgentInput): Promise<Linke
           extracted[SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES] =
             employees.length > 0
               ? {
-                  content: JSON.stringify(employees),
+                  content: JSON.stringify(employees, null, 0), // Compact JSON, no indentation
                   confidenceScore: 5,
                   source: linkedInUrl,
                 }
@@ -118,12 +118,24 @@ export const runLinkedInAgent = async (input: LinkedInAgentInput): Promise<Linke
           extracted[SPECIAL_DATA_POINTS.LINKEDIN_POSTS] =
             posts.length > 0
               ? {
-                  content: JSON.stringify(posts),
+                  content: JSON.stringify(posts, null, 0), // Compact JSON, no indentation
                   confidenceScore: 5,
                   source: linkedInUrl,
                 }
               : null;
           console.info(`[LinkedInAgent] ${SPECIAL_DATA_POINTS.LINKEDIN_POSTS}: extracted ${posts.length} posts`);
+        }
+
+        if (dataPointName === SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL) {
+          const logoUrl = typeof linkedInData.LINKEDIN_LOGO_URL === 'string' ? linkedInData.LINKEDIN_LOGO_URL : null;
+          extracted[SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL] = logoUrl
+            ? {
+                content: logoUrl,
+                confidenceScore: 5,
+                source: linkedInUrl,
+              }
+            : null;
+          console.info(`[LinkedInAgent] ${SPECIAL_DATA_POINTS.LINKEDIN_LOGO_URL}: extracted logo URL`);
         }
       }
     }

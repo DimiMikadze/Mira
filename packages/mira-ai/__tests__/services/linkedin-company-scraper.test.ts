@@ -83,6 +83,15 @@ it('should scrape LinkedIn company page and extract structured data', async () =
     console.info('👥 No LinkedIn employees found by scraper');
   }
 
+  // Test LinkedIn logo URL extraction
+  if (data.LINKEDIN_LOGO_URL) {
+    expect(typeof data.LINKEDIN_LOGO_URL).toBe('string');
+    expect(data.LINKEDIN_LOGO_URL.startsWith('http')).toBe(true);
+    console.info(`🖼️ Scraper found LinkedIn logo URL: ${data.LINKEDIN_LOGO_URL}`);
+  } else {
+    console.info('🖼️ No LinkedIn logo URL found by scraper');
+  }
+
   // Save result for agent test
   const fixturePath = join(__dirname, '../fixtures/linkedin-scraper-result.json');
   writeFileSync(

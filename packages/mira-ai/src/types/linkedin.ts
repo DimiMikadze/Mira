@@ -24,12 +24,10 @@ export interface LinkedInCompanyData {
   founded?: string;
   specialties?: string;
 
-  // Essential images only
-  logoUrl?: string;
-
   // Special data points (extracted via selectors) - use uppercase for consistency
   LINKEDIN_EMPLOYEES?: LinkedInEmployee[];
   LINKEDIN_POSTS?: LinkedInPost[];
+  LINKEDIN_LOGO_URL?: string;
 }
 
 export interface LinkedInScrapingResult {

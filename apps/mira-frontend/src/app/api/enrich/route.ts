@@ -34,9 +34,17 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         // Helper function to send SSE events
         const sendEvent = (type: string, message?: string, data?: unknown) => {
-          const event = { type, message, data };
-          const eventData = `data: ${JSON.stringify(event)}\n\n`;
-          controller.enqueue(encoder.encode(eventData));
+          try {
+            const event = { type, message, data };
+            const eventData = `data: ${JSON.stringify(event)}\n\n`;
+            controller.enqueue(encoder.encode(eventData));
+          } catch (error) {
+            console.error('[API] Error serializing SSE event:', error);
+            // Send error event instead
+            const errorEvent = { type: 'ERROR', message: 'Failed to serialize event data' };
+            const errorData = `data: ${JSON.stringify(errorEvent)}\n\n`;
+            controller.enqueue(encoder.encode(errorData));
+          }
         };
 
         try {
