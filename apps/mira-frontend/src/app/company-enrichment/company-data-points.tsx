@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { EnrichedCompany, DataPoint, LinkedInPerson } from 'mira-ai/types';
+import type { EnrichedCompany, DataPoint, LinkedInPerson, LinkedInPost } from 'mira-ai/types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Link } from 'lucide-react';
 
@@ -117,6 +117,39 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
         } catch {
           // Not structured data, fall through to regular text rendering
         }
+      }
+
+      // LinkedIn posts (JSON array with { timeAgo, text })
+      try {
+        const parsed = typeof dataPoint.content === 'string' ? JSON.parse(dataPoint.content) : null;
+        if (
+          Array.isArray(parsed) &&
+          parsed.length > 0 &&
+          parsed.every((p) => typeof p === 'object' && ('timeAgo' in p || 'text' in p))
+        ) {
+          const posts = (parsed as LinkedInPost[])
+            .filter((p) => p && (p.timeAgo != null || (p.text && String(p.text).trim().length > 0)))
+            .slice(0, 10);
+
+          if (posts.length > 0) {
+            return (
+              <div className='flex flex-col gap-4 w-full'>
+                {posts.map((p, i) => (
+                  <div key={`${p.timeAgo ?? ''}-${i}`} className='rounded-lg border p-3 bg-white/50'>
+                    <div className='mb-2'>
+                      <span className='inline-flex items-center rounded-full border px-2 py-0.5 text-xs text-gray-700'>
+                        {p.timeAgo ?? '—'}
+                      </span>
+                    </div>
+                    <p className='text-gray-800 text-sm whitespace-pre-wrap'>{p.text ?? ''}</p>
+                  </div>
+                ))}
+              </div>
+            );
+          }
+        }
+      } catch {
+        // not posts JSON; fall through
       }
 
       return <p className='text-gray-700 text-md'>{dataPoint.content}</p>;

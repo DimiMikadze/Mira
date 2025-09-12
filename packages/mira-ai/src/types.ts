@@ -5,7 +5,7 @@ export type { EnrichedCompany, DataPoint, EnrichmentSources, EnrichmentConfig } 
 
 export type { CompanyAnalysis, CompanyAnalysisWithCriteria } from './types/company-analysis.js';
 
-export type { LinkedInCompanyData, LinkedInPerson } from './types/linkedin.js';
+export type { LinkedInCompanyData, LinkedInPerson, LinkedInPost } from './types/linkedin.js';
 
 export type { ScrapingResult, ScrapeResponse } from './types/scraper.js';
 

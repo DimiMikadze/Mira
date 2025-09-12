@@ -6,6 +6,11 @@ export interface LinkedInPerson {
   location?: string;
 }
 
+export interface LinkedInPost {
+  timeAgo: string | null;
+  text: string | null;
+}
+
 export interface LinkedInCompanyData {
   // Raw content for LLM processing (clean page content only)
   content: string;
@@ -24,6 +29,9 @@ export interface LinkedInCompanyData {
 
   // Essential images only
   logoUrl?: string;
+
+  // Extracted posts from the company page
+  linkedInPosts?: LinkedInPost[];
 }
 
 export interface LinkedInScrapingResult {

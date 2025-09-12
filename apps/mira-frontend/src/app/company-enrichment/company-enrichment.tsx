@@ -105,6 +105,11 @@ const CompanyEnrichment = () => {
       description:
         'Array of LinkedInPerson objects with name (required), title (required), profileUrl, photoUrl, and location properties. Extract employee information from the LinkedIn company page.',
     },
+    {
+      name: 'linkedinPosts',
+      description:
+        'Array of LinkedInPost objects with timeAgo (required) and text (required) properties. Extract LinkedIn posts from the LinkedIn company page.',
+    },
     { name: 'totalFunding', description: 'Total funding amount raised (e.g., "$50M", "Series B $25M")' },
     {
       name: 'recentFunding',

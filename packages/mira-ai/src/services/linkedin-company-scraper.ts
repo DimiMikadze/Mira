@@ -352,6 +352,71 @@ const cleanLinkedInContent = (rawText: string): string => {
 };
 
 /**
+ * Extracts recent company posts (timeAgo like "2w" and text content)
+ */
+const extractCompanyPosts = (
+  document: Document,
+  cleanFn: (s: string) => string
+): Array<{ timeAgo: string; text: string }> => {
+  const results: Array<{ timeAgo: string; text: string }> = [];
+
+  const postItems = document.querySelectorAll(
+    [
+      'ul.updates__list > li',
+      'li[data-test-id="main-feed-activity-card"]',
+      'article[data-test-id="main-feed-activity-card"]',
+    ].join(',')
+  );
+
+  postItems.forEach((post) => {
+    try {
+      // TimeAgo (e.g., "2w", "3d", "1mo")
+      const timeEl =
+        post.querySelector('div[data-test-id="main-feed-activity-card__entity-lockup"] time') ||
+        post.querySelector('time');
+
+      let rawTimeAgo = timeEl ? timeEl.textContent || '' : '';
+      rawTimeAgo = rawTimeAgo
+        .replace(/\s+/g, ' ') // collapse newlines/spaces
+        .replace(/\bEdited\b/i, '') // drop "Edited"
+        .trim();
+
+      const timeAgo = rawTimeAgo || null;
+
+      // Post text content
+      const contentEl =
+        post.querySelector('p[data-test-id="main-feed-activity-card__commentary"]') ||
+        post.querySelector('div[data-test-id="main-feed-activity-card__commentary"] p') ||
+        post.querySelector('[data-test-id="feed-shared-update-v2__commentary"]') ||
+        post.querySelector('div.update-components-text, div.feed-shared-update-v2__description, p');
+
+      let rawText = contentEl ? contentEl.textContent || '' : '';
+      rawText = cleanFn(rawText);
+
+      const text = rawText?.trim() || null;
+
+      // Only push if BOTH timeAgo and text exist
+      if (timeAgo && text) {
+        results.push({ timeAgo, text });
+      }
+    } catch {
+      // ignore individual post extraction errors
+    }
+  });
+
+  // Deduplicate and cap to first 5 posts
+  const seen = new Set<string>();
+  const unique = results.filter((p) => {
+    const key = `${p.timeAgo}::${p.text}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  return unique.slice(0, 5);
+};
+
+/**
  * Processes HTML content to extract clean text and essential images
  */
 const processLinkedInContent = (rawHtml: string): LinkedInCompanyData => {
@@ -397,6 +462,9 @@ const processLinkedInContent = (rawHtml: string): LinkedInCompanyData => {
 
   // Extract complete employee information
   const employees = extractEmployeeInfo(document);
+
+  // Extract company posts
+  const posts = extractCompanyPosts(document, cleanLinkedInContent);
 
   // Remove additional elements that don't contribute to meaningful content
   const elementsToRemove = [
@@ -460,6 +528,7 @@ const processLinkedInContent = (rawHtml: string): LinkedInCompanyData => {
     ...structuredInfo,
     ...(employees.length > 0 && { employees }),
     ...(logoUrl && { logoUrl }),
+    ...(posts.length > 0 && { linkedinPosts: posts }),
   };
 };
 

@@ -1,5 +1,5 @@
 import { EnrichedCompany, CustomDataPoint } from '../types/company.js';
-import type { LinkedInPerson } from '../types/linkedin.js';
+import type { LinkedInPerson, LinkedInPost } from '../types/linkedin.js';
 
 /**
  * Reusable confidence scoring guidelines for all prompts
@@ -480,6 +480,7 @@ export const createLinkedInPrompt = (
     specialties?: string;
     logoUrl?: string;
     employees?: LinkedInPerson[];
+    linkedInPosts?: LinkedInPost[];
     content: string;
   }
 ) => {
@@ -495,6 +496,7 @@ export const createLinkedInPrompt = (
   if (linkedInData.specialties) structuredData.push(`- Specialties: ${linkedInData.specialties}`);
   if (linkedInData.logoUrl) structuredData.push(`- Logo URL: ${linkedInData.logoUrl}`);
 
+  // Employee information
   const employeeCount = linkedInData.employees?.length || 0;
   const employeeInfo =
     employeeCount > 0 && linkedInData.employees
@@ -509,10 +511,24 @@ export const createLinkedInPrompt = (
           .join('\n')}`
       : '';
 
+  // Posts
+  const postsCount = linkedInData.linkedInPosts?.length || 0;
+  const postsInfo =
+    postsCount > 0 && linkedInData.linkedInPosts
+      ? `\n\nExtracted LinkedIn Posts (${postsCount} found):\n${linkedInData.linkedInPosts
+          .map((p, i) => {
+            const parts = [`- Post ${i + 1}:`];
+            parts.push(`  timeAgo: ${p.timeAgo ?? null}`);
+            parts.push(`  text: ${p.text ?? null}`);
+            return parts.join('\n');
+          })
+          .join('\n')}`
+      : '';
+
   const structuredInfo =
     structuredData.length > 0
-      ? `\nStructured Data Already Extracted:\n${structuredData.join('\n')}${employeeInfo}`
-      : employeeInfo;
+      ? `\nStructured Data Already Extracted:\n${structuredData.join('\n')}${employeeInfo}${postsInfo}`
+      : `${employeeInfo}${postsInfo}`;
 
   return `Task:
 Extract the requested company data points from LinkedIn company page content.
@@ -537,12 +553,16 @@ ${linkedInData.content}
 
 CRITICAL Rules:
 - Use ALL available information (structured data + raw content + employee data)
+- Use ONLY the information provided in this prompt. Do not browse or rely on external knowledge.
 - If data point is NOT in structured data, extract it from raw LinkedIn content
 - If data point cannot be found anywhere, return null for that field
 - For employees field, format as JSON array with EXACTLY this structure:
   [{"name": "string", "title": "string", "profileUrl": "string", "photoUrl": "string"}]
   Include ALL four fields for each employee: name (required), title, profileUrl, photoUrl
   If any employee field is missing (e.g., no photoUrl found), set that field to null
+- For linkedInPosts field, format as JSON array with EXACTLY this structure:
+  [{"timeAgo": "string", "text": "string"}]
+  Include BOTH fields for each post: timeAgo and text
 - ALWAYS include ALL requested fields in JSON response, set missing ones to null
 - Return VALID JSON only
 - Do NOT invent information not supported by the available data`;
