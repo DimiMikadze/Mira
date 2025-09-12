@@ -1,4 +1,4 @@
-export interface LinkedInPerson {
+export interface LinkedInEmployee {
   name: string;
   title: string;
   profileUrl?: string;
@@ -24,14 +24,12 @@ export interface LinkedInCompanyData {
   founded?: string;
   specialties?: string;
 
-  // Employee information (extracted via selectors)
-  employees?: LinkedInPerson[];
-
   // Essential images only
   logoUrl?: string;
 
-  // Extracted posts from the company page
-  linkedInPosts?: LinkedInPost[];
+  // Special data points (extracted via selectors) - use uppercase for consistency
+  LINKEDIN_EMPLOYEES?: LinkedInEmployee[];
+  LINKEDIN_POSTS?: LinkedInPost[];
 }
 
 export interface LinkedInScrapingResult {

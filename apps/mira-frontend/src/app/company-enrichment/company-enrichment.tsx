@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { EnrichedCompany, EnrichmentSources } from 'mira-ai/types';
+import { SPECIAL_DATA_POINTS } from 'mira-ai/types';
 
 import CompanyAnalysis from './company-analysis';
 import CompanyDataPoints from './company-data-points';
@@ -101,14 +102,14 @@ const CompanyEnrichment = () => {
       description: 'Company logo URL extracted from LinkedIn profile. Direct link to the company logo image.',
     },
     {
-      name: 'employees',
+      name: SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES,
       description:
-        'Array of LinkedInPerson objects with name (required), title (required), profileUrl, photoUrl, and location properties. Extract employee information from the LinkedIn company page.',
+        'LinkedIn Employees. Array of LinkedInEmployee objects with name (required), title (required), profileUrl, photoUrl, and location properties extracted from the LinkedIn company page.',
     },
     {
-      name: 'linkedinPosts',
+      name: SPECIAL_DATA_POINTS.LINKEDIN_POSTS,
       description:
-        'Array of LinkedInPost objects with timeAgo (required) and text (required) properties. Extract LinkedIn posts from the LinkedIn company page.',
+        'LinkedIn Posts. Array of LinkedInPost objects with timeAgo (required) and text (required) properties extracted from the LinkedIn company page.',
     },
     { name: 'totalFunding', description: 'Total funding amount raised (e.g., "$50M", "Series B $25M")' },
     {

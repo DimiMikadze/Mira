@@ -41,6 +41,48 @@ it('should scrape LinkedIn company page and extract structured data', async () =
   const hasBasicInfo = data.name || data.description || data.industry;
   expect(hasBasicInfo).toBeTruthy();
 
+  // Test LinkedIn posts extraction
+  if (data.LINKEDIN_POSTS) {
+    expect(Array.isArray(data.LINKEDIN_POSTS)).toBe(true);
+    console.info(`📰 Scraper found ${data.LINKEDIN_POSTS.length} LinkedIn posts`);
+
+    // Validate post structure
+    data.LINKEDIN_POSTS.forEach((post, index) => {
+      expect(post).toHaveProperty('timeAgo');
+      expect(post).toHaveProperty('text');
+      expect(typeof post.timeAgo === 'string' || post.timeAgo === null).toBe(true);
+      expect(typeof post.text === 'string' || post.text === null).toBe(true);
+
+      if (index < 3) {
+        // Log first few posts for debugging
+        console.info(`  Post ${index + 1}: ${post.timeAgo} - ${post.text?.substring(0, 100)}...`);
+      }
+    });
+  } else {
+    console.info('📰 No LinkedIn posts found by scraper');
+  }
+
+  // Test LinkedIn employees extraction
+  if (data.LINKEDIN_EMPLOYEES) {
+    expect(Array.isArray(data.LINKEDIN_EMPLOYEES)).toBe(true);
+    console.info(`👥 Scraper found ${data.LINKEDIN_EMPLOYEES.length} LinkedIn employees`);
+
+    // Validate employee structure
+    data.LINKEDIN_EMPLOYEES.forEach((employee, index) => {
+      expect(employee).toHaveProperty('name');
+      expect(employee).toHaveProperty('title');
+      expect(typeof employee.name).toBe('string');
+      expect(typeof employee.title).toBe('string');
+
+      if (index < 3) {
+        // Log first few employees for debugging
+        console.info(`  Employee ${index + 1}: ${employee.name} - ${employee.title}`);
+      }
+    });
+  } else {
+    console.info('👥 No LinkedIn employees found by scraper');
+  }
+
   // Save result for agent test
   const fixturePath = join(__dirname, '../fixtures/linkedin-scraper-result.json');
   writeFileSync(

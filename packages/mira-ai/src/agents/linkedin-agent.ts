@@ -16,6 +16,8 @@ import { AGENT_CONFIGS } from '../constants/agent-config.js';
 import { scrapeLinkedInCompany } from '../services/linkedin-company-scraper.js';
 import { createDataPointsSchema, DataPoint, CustomDataPoint } from '../types/company.js';
 import { createLinkedInPrompt, LINKEDIN_AGENT_INSTRUCTIONS } from '../constants/prompts.js';
+import { SPECIAL_DATA_POINTS, isSpecialDataPoint } from '../constants/special-data-points.js';
+import type { LinkedInEmployee, LinkedInPost } from '../types/linkedin.js';
 
 /** Input expected by the LinkedIn Agent */
 export interface LinkedInAgentInput {
@@ -85,27 +87,73 @@ export const runLinkedInAgent = async (input: LinkedInAgentInput): Promise<Linke
       }`
     );
 
-    // Step 2: Run LLM analysis on LinkedIn content
-    const dataPointKeys = needs as string[];
-    const descriptions = dataPoints
-      .filter((dp) => dataPointKeys.includes(dp.name))
-      .map((dp) => `- ${dp.name}: ${dp.description}`)
-      .join('\n');
-
-    const prompt = createLinkedInPrompt(descriptions, linkedInUrl, linkedInData);
-    const agent = createLinkedInAgent(dataPointKeys);
-
-    console.info(`[LinkedInAgent] Running LLM analysis for ${dataPointKeys.length} data points`);
-    const response = await run(agent, prompt);
-
-    // The schema returns { content, confidenceScore } or null per key.
-    type LLMDataPointMap = Record<string, { content: string; confidenceScore: number } | null>;
-    const llmOutput = (response?.finalOutput as unknown as LLMDataPointMap) || {};
+    // Step 2: Pre-extract special data points from scraper data
     const extracted: Record<string, DataPoint | null> = {};
+    const requestedDataPoints = needs as string[];
 
-    for (const key of dataPointKeys) {
-      const val = llmOutput[key];
-      extracted[key] = val && typeof val.content === 'string' ? { ...val, source: linkedInUrl } : null;
+    // Handle special data points that come directly from scraper
+    for (const dataPointName of requestedDataPoints) {
+      if (isSpecialDataPoint(dataPointName)) {
+        console.info(`[LinkedInAgent] Processing special data point: ${dataPointName}`);
+
+        if (dataPointName === SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES) {
+          const employees: LinkedInEmployee[] = Array.isArray(linkedInData.LINKEDIN_EMPLOYEES)
+            ? linkedInData.LINKEDIN_EMPLOYEES
+            : [];
+          extracted[SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES] =
+            employees.length > 0
+              ? {
+                  content: JSON.stringify(employees),
+                  confidenceScore: 5,
+                  source: linkedInUrl,
+                }
+              : null;
+          console.info(
+            `[LinkedInAgent] ${SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES}: extracted ${employees.length} employees`
+          );
+        }
+
+        if (dataPointName === SPECIAL_DATA_POINTS.LINKEDIN_POSTS) {
+          const posts: LinkedInPost[] = Array.isArray(linkedInData.LINKEDIN_POSTS) ? linkedInData.LINKEDIN_POSTS : [];
+          extracted[SPECIAL_DATA_POINTS.LINKEDIN_POSTS] =
+            posts.length > 0
+              ? {
+                  content: JSON.stringify(posts),
+                  confidenceScore: 5,
+                  source: linkedInUrl,
+                }
+              : null;
+          console.info(`[LinkedInAgent] ${SPECIAL_DATA_POINTS.LINKEDIN_POSTS}: extracted ${posts.length} posts`);
+        }
+      }
+    }
+
+    // Step 3: Run LLM analysis for non-special data points
+    const llmDataPoints = requestedDataPoints.filter((key) => !isSpecialDataPoint(key));
+
+    if (llmDataPoints.length > 0) {
+      const descriptions = dataPoints
+        .filter((dp) => llmDataPoints.includes(dp.name))
+        .map((dp) => `- ${dp.name}: ${dp.description}`)
+        .join('\n');
+
+      const prompt = createLinkedInPrompt(descriptions, linkedInUrl, linkedInData);
+      const agent = createLinkedInAgent(llmDataPoints);
+
+      console.info(
+        `[LinkedInAgent] Running LLM analysis for ${llmDataPoints.length} data points: ${llmDataPoints.join(', ')}`
+      );
+      const response = await run(agent, prompt);
+
+      // The schema returns { content, confidenceScore } or null per key.
+      type LLMDataPointMap = Record<string, { content: string; confidenceScore: number } | null>;
+      const llmOutput = (response?.finalOutput as unknown as LLMDataPointMap) || {};
+
+      // Merge LLM results with special data points
+      for (const key of llmDataPoints) {
+        const val = llmOutput[key];
+        extracted[key] = val && typeof val.content === 'string' ? { ...val, source: linkedInUrl } : null;
+      }
     }
 
     const extractedKeys = Object.keys(extracted).filter((k) => extracted[k]);

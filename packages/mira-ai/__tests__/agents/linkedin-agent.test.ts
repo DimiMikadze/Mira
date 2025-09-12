@@ -6,6 +6,7 @@
 import { jest } from '@jest/globals';
 import { runLinkedInAgent } from '../../src/agents/linkedin-agent';
 import type { CustomDataPoint } from '../../src/types/company';
+import { SPECIAL_DATA_POINTS } from '../../src/constants/special-data-points';
 
 const TEST_LINKEDIN_URL = 'https://linkedin.com/company/github';
 
@@ -15,7 +16,8 @@ const TEST_DATA_POINTS: CustomDataPoint[] = [
   { name: 'industry', description: 'Industry or sector' },
   { name: 'headquarters', description: 'Company headquarters location' },
   { name: 'companySize', description: 'Number of employees' },
-  { name: 'employees', description: 'Employee information' },
+  { name: SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES, description: 'Employee information extracted from LinkedIn' },
+  { name: SPECIAL_DATA_POINTS.LINKEDIN_POSTS, description: 'LinkedIn posts extracted from company page' },
 ];
 
 jest.setTimeout(60000);
@@ -24,7 +26,14 @@ it('should extract company data points from LinkedIn using LLM analysis', async 
   // Test agent with real LinkedIn URL
   const result = await runLinkedInAgent({
     linkedInUrl: TEST_LINKEDIN_URL,
-    needs: ['name', 'industry', 'headquarters', 'companySize', 'employees'],
+    needs: [
+      'name',
+      'industry',
+      'headquarters',
+      'companySize',
+      SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES,
+      SPECIAL_DATA_POINTS.LINKEDIN_POSTS,
+    ],
     dataPoints: TEST_DATA_POINTS,
   });
 
@@ -48,6 +57,32 @@ it('should extract company data points from LinkedIn using LLM analysis', async 
       expect(dataPoint.source).toBe(TEST_LINKEDIN_URL);
     }
   });
+
+  // Test special data points specifically
+  const linkedinEmployees = result.extracted[SPECIAL_DATA_POINTS.LINKEDIN_EMPLOYEES];
+  const linkedinPosts = result.extracted[SPECIAL_DATA_POINTS.LINKEDIN_POSTS];
+
+  if (linkedinEmployees) {
+    expect(linkedinEmployees.confidenceScore).toBe(5); // Should have max confidence from scraper
+    expect(() => JSON.parse(linkedinEmployees.content)).not.toThrow(); // Should be valid JSON
+    const employees = JSON.parse(linkedinEmployees.content);
+    expect(Array.isArray(employees)).toBe(true);
+    console.info(`📋 Found ${employees.length} LinkedIn employees`);
+  }
+
+  if (linkedinPosts) {
+    expect(linkedinPosts.confidenceScore).toBe(5); // Should have max confidence from scraper
+    expect(() => JSON.parse(linkedinPosts.content)).not.toThrow(); // Should be valid JSON
+    const posts = JSON.parse(linkedinPosts.content);
+    expect(Array.isArray(posts)).toBe(true);
+    console.info(`📰 Found ${posts.length} LinkedIn posts`);
+
+    // Validate post structure
+    posts.forEach((post: any) => {
+      expect(post).toHaveProperty('timeAgo');
+      expect(post).toHaveProperty('text');
+    });
+  }
 
   console.info(
     `✅ LinkedIn agent extracted ${Object.keys(result.extracted).filter((k) => result.extracted[k]).length} data points`

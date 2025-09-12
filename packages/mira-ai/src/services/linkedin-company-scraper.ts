@@ -1,6 +1,6 @@
 import { ScrapingBeeClient } from 'scrapingbee';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import type { LinkedInCompanyData, LinkedInScrapingResult, LinkedInPerson } from '../types/linkedin.js';
+import type { LinkedInCompanyData, LinkedInScrapingResult, LinkedInEmployee } from '../types/linkedin.js';
 
 const scrapingBeeClient = new ScrapingBeeClient(process.env.SCRAPING_BEE_API_KEY!);
 
@@ -107,8 +107,8 @@ const extractLogoUrl = (document: Document): string | undefined => {
 /**
  * Extracts complete employee information from the main company page using robust LinkedIn selectors
  */
-const extractEmployeeInfo = (document: Document): LinkedInPerson[] => {
-  const employees: LinkedInPerson[] = [];
+const extractEmployeeInfo = (document: Document): LinkedInEmployee[] => {
+  const employees: LinkedInEmployee[] = [];
 
   // Find the employee widget section that contains employee previews
   let employeeWidget: Element | null = null;
@@ -140,7 +140,7 @@ const extractEmployeeInfo = (document: Document): LinkedInPerson[] => {
 
   employeeCards.forEach((card) => {
     try {
-      const employee: LinkedInPerson = {
+      const employee: LinkedInEmployee = {
         name: '',
         title: '',
       };
@@ -526,9 +526,9 @@ const processLinkedInContent = (rawHtml: string): LinkedInCompanyData => {
   return {
     content: finalContent,
     ...structuredInfo,
-    ...(employees.length > 0 && { employees }),
     ...(logoUrl && { logoUrl }),
-    ...(posts.length > 0 && { linkedinPosts: posts }),
+    ...(employees.length > 0 && { LINKEDIN_EMPLOYEES: employees }),
+    ...(posts.length > 0 && { LINKEDIN_POSTS: posts }),
   };
 };
 

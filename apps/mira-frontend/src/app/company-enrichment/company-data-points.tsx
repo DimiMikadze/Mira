@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import type { EnrichedCompany, DataPoint, LinkedInPerson, LinkedInPost } from 'mira-ai/types';
+import type { EnrichedCompany, DataPoint, LinkedInEmployee, LinkedInPost } from 'mira-ai/types';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Link } from 'lucide-react';
 
@@ -71,7 +71,7 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
             parsed[0]?.name &&
             (parsed[0]?.title || parsed[0]?.photoUrl || parsed[0]?.profileUrl)
           ) {
-            const people = parsed as LinkedInPerson[];
+            const people = parsed as LinkedInEmployee[];
             const validPeople = people.filter((person) => person?.name);
 
             if (validPeople.length === 0) {
