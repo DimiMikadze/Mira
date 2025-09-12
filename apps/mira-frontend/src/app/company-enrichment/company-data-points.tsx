@@ -127,9 +127,9 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
           parsed.length > 0 &&
           parsed.every((p) => typeof p === 'object' && ('timeAgo' in p || 'text' in p))
         ) {
-          const posts = (parsed as LinkedInPost[])
-            .filter((p) => p && (p.timeAgo != null || (p.text && String(p.text).trim().length > 0)))
-            .slice(0, 10);
+          const posts = (parsed as LinkedInPost[]).filter(
+            (p) => p && (p.timeAgo != null || (p.text && String(p.text).trim().length > 0))
+          );
 
           if (posts.length > 0) {
             return (
