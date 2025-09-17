@@ -17,8 +17,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "generate-types": "supabase gen types typescript --project-id vcoabomphfvqiexopjjh > ./src/constants/database.types.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
