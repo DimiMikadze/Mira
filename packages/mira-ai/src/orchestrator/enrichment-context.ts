@@ -84,10 +84,10 @@ export const initializeEnrichmentContext = (
   const { onProgress, enrichmentConfig, minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD } = options || {};
 
   const sourcesConfig = createSourcesConfig(enrichmentConfig);
+  const analysisConfig = enrichmentConfig?.analysis;
   const progressReporter = createProgressReporter(onProgress, sourcesConfig);
   const sourcesManager = createSourcesManager();
   const dataPoints = enrichmentConfig?.dataPoints || [];
-  const analysisConfig = enrichmentConfig?.analysis;
 
   return {
     url,

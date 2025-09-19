@@ -98,9 +98,12 @@ const CompanySearchInput = ({
         const newWorkspace = await createWorkspace(supabase, {
           name: workspaceData.name!,
           user_id: authUser.id,
-          company_criteria: workspaceData.company_criteria,
+          analysis_company_criteria: workspaceData.analysis_company_criteria,
+          analysis_executive_summary: workspaceData.analysis_executive_summary,
+          source_crawl: workspaceData.source_crawl,
+          source_google: workspaceData.source_google,
+          source_linkedin: workspaceData.source_linkedin,
           datapoints: workspaceData.datapoints,
-          sources: workspaceData.sources,
         });
         setCurrentWorkspace(newWorkspace);
       }

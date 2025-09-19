@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   try {
-    const { url, companyCriteria, sources, dataPoints } = await request.json();
+    const { url, sources, analysis, dataPoints } = await request.json();
 
     if (!url) {
       return new Response('URL is required', { status: 400 });
@@ -71,13 +71,15 @@ export async function POST(request: NextRequest) {
               crawl: sources?.crawl,
               linkedin: sources?.linkedin,
               google: sources?.google,
-              analysis: sources?.analysis,
+            },
+            analysis: {
+              executiveSummary: analysis?.executiveSummary,
+              companyCriteria: analysis?.companyCriteria,
             },
           };
 
           // Run enrichment with progress callback
           const result = await researchCompany(url, config, {
-            companyCriteria,
             onProgress,
             enrichmentConfig,
           });

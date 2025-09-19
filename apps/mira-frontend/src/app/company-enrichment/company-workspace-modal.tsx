@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { AutosizeTextarea } from '@/components/ui/autosize-textarea';
 
 interface CompanyWorkspaceModalProps {
@@ -28,15 +28,19 @@ interface CompanyWorkspaceModalProps {
 }
 
 // Helpers: map existing workspace -> form defaults
-function sourcesArrayToObject(arr?: string[] | null): WorkspaceFormValues['sources'] {
-  const base: WorkspaceFormValues['sources'] = { crawl: false, google: false, linkedin: false, analysis: false };
-  if (!arr) return base;
-  return arr.reduce<WorkspaceFormValues['sources']>((acc, s) => {
-    if (s in acc) {
-      (acc as Record<string, boolean>)[s] = true;
-    }
-    return acc;
-  }, base);
+function mapWorkspaceToFormSources(workspace?: WorkspaceRow): WorkspaceFormValues['sources'] {
+  return {
+    crawl: workspace?.source_crawl ?? false,
+    google: workspace?.source_google ?? false,
+    linkedin: workspace?.source_linkedin ?? false,
+  };
+}
+
+function mapWorkspaceToFormAnalysis(workspace?: WorkspaceRow): WorkspaceFormValues['analysis'] {
+  return {
+    executiveSummary: workspace?.analysis_executive_summary ?? false,
+    companyCriteria: workspace?.analysis_company_criteria ?? '',
+  };
 }
 
 // Reusable section component
@@ -68,14 +72,13 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
       ? (workspace.datapoints as unknown as CustomDataPoint[])
       : [{ name: '', description: '' }];
 
-    const inferredSources = workspace?.sources
-      ? sourcesArrayToObject(workspace.sources)
-      : { crawl: true, google: true, linkedin: true, analysis: true };
+    const inferredSources = mapWorkspaceToFormSources(workspace);
+    const inferredAnalysis = mapWorkspaceToFormAnalysis(workspace);
 
     return {
       name: workspace?.name || '',
-      company_criteria: workspace?.company_criteria || '',
       sources: inferredSources,
+      analysis: inferredAnalysis,
       dataPoints: inferredDataPoints.length > 0 ? inferredDataPoints : [{ name: '', description: '' }],
     };
   }, [workspace]);
@@ -86,8 +89,8 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
     mode: 'onChange',
   });
 
-  const { control, handleSubmit, formState, watch, reset } = form;
-  const { fields, append, remove } = useFieldArray<WorkspaceFormValues>({
+  const { control, handleSubmit, formState, reset } = form;
+  const { fields, append } = useFieldArray<WorkspaceFormValues>({
     control,
     name: 'dataPoints',
   });
@@ -102,13 +105,13 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
   const onSubmit = async (values: WorkspaceFormValues) => {
     const workspaceData: Partial<WorkspaceRow> = {
       name: values.name.trim(),
-      company_criteria: values.company_criteria?.trim() || null,
-      sources: Object.keys(values.sources).filter((key) => values.sources[key as keyof typeof values.sources]) as (
-        | 'crawl'
-        | 'linkedin'
-        | 'google'
-        | 'analysis'
-      )[],
+      // Sources as individual boolean fields
+      source_crawl: values.sources.crawl ?? false,
+      source_google: values.sources.google ?? false,
+      source_linkedin: values.sources.linkedin ?? false,
+      // Analysis fields
+      analysis_executive_summary: values.analysis.executiveSummary ?? false,
+      analysis_company_criteria: values.analysis.companyCriteria?.trim() || null,
       datapoints: values.dataPoints.map((d) => ({
         name: d.name.trim(),
         description: d.description.trim(),
@@ -121,8 +124,6 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
     await onSave(workspaceData);
   };
-
-  const sources = watch('sources');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -217,7 +218,10 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
             </WorkspaceSection>
 
             {/* Sources */}
-            <WorkspaceSection title='Sources' description='Select at least one source Mira should use for enrichment.'>
+            <WorkspaceSection
+              title='Sources (optional)'
+              description='Mira always scrapes the main landing page. You can enable additional sources for more comprehensive data.'
+            >
               <div className='grid gap-4'>
                 <FormField
                   control={control}
@@ -267,34 +271,55 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                   )}
                 />
               </div>
-
-              {/* Global sources error (from refine) */}
-              {!Object.values(sources || {}).some(Boolean) && (
-                <p className='text-sm font-medium text-destructive'>Select at least one source.</p>
-              )}
             </WorkspaceSection>
 
-            {/* Company Criteria */}
+            {/* Analysis */}
             <WorkspaceSection
-              title='Company Criteria (optional)'
-              description='Use this to describe filters you want (industry, size, geography, funding, tech stack, etc.).'
+              title='Analysis (optional)'
+              description='Configure additional analysis options for your enrichment results.'
             >
-              <FormField
-                control={control}
-                name='company_criteria'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Criteria</FormLabel>
-                    <FormControl>
-                      <AutosizeTextarea
-                        placeholder='e.g., B2B SaaS, 11–200 employees, recent funding, US/EU market…'
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className='grid gap-4'>
+                <FormField
+                  control={control}
+                  name='analysis.executiveSummary'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
+                      <div>
+                        <FormLabel className='text-base'>Executive Summary</FormLabel>
+                        <FormDescription>Generate an executive summary based on the data points found.</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className='rounded-2xl border bg-white'>
+                  <div className='p-4'>
+                    <FormField
+                      control={control}
+                      name='analysis.companyCriteria'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-base'>Company Criteria</FormLabel>
+                          <FormDescription className='mb-4'>
+                            Describe your ideal company profile to get a fit score and reasoning.
+                          </FormDescription>
+                          <FormControl>
+                            <AutosizeTextarea
+                              placeholder='e.g., B2B SaaS, 11–200 employees, recent funding, US/EU market…'
+                              {...field}
+                              className='min-h-[80px]'
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
             </WorkspaceSection>
           </form>
         </Form>

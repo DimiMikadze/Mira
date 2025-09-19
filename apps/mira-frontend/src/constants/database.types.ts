@@ -16,32 +16,41 @@ export type Database = {
     Tables: {
       Workspace: {
         Row: {
-          company_criteria: string | null
+          analysis_company_criteria: string | null
+          analysis_executive_summary: boolean
           created_at: string
           datapoints: Json
           id: string
           name: string
-          sources: Database["public"]["Enums"]["source"][]
+          source_crawl: boolean
+          source_google: boolean
+          source_linkedin: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
-          company_criteria?: string | null
+          analysis_company_criteria?: string | null
+          analysis_executive_summary?: boolean
           created_at?: string
           datapoints?: Json
           id?: string
           name: string
-          sources?: Database["public"]["Enums"]["source"][]
+          source_crawl?: boolean
+          source_google?: boolean
+          source_linkedin?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
-          company_criteria?: string | null
+          analysis_company_criteria?: string | null
+          analysis_executive_summary?: boolean
           created_at?: string
           datapoints?: Json
           id?: string
           name?: string
-          sources?: Database["public"]["Enums"]["source"][]
+          source_crawl?: boolean
+          source_google?: boolean
+          source_linkedin?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -55,7 +64,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      source: "crawl" | "linkedin" | "google" | "analysis"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -182,8 +191,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      source: ["crawl", "linkedin", "google", "analysis"],
-    },
+    Enums: {},
   },
 } as const

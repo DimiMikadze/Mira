@@ -1,6 +1,3 @@
--- Enum for sources
-create type public.source as enum ('crawl', 'linkedin', 'google');
-
 -- Table
 create table public."Workspace" (
   id uuid primary key default gen_random_uuid(),
@@ -9,11 +6,15 @@ create table public."Workspace" (
 
   -- Array of objects -> store as JSONB; keep validation light
   datapoints jsonb not null default '[]'::jsonb,
-  -- Multiple sources per Workspace
-  sources public.source[] not null default '{}',
+  
+  -- Sources configuration
+  source_crawl boolean not null default false,
+  source_linkedin boolean not null default false,
+  source_google boolean not null default false,
 
-  -- New: company criteria as plain text
-  company_criteria text,
+  -- Analysis configuration
+  analysis_executive_summary boolean not null default false,
+  analysis_company_criteria text,
 
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -25,7 +26,6 @@ alter table public."Workspace"
 
 -- Indexes
 create index workspace_user_id_idx on public."Workspace" (user_id);
-create index workspace_sources_gin_idx on public."Workspace" using gin (sources);
 create index workspace_datapoints_gin_idx on public."Workspace" using gin (datapoints jsonb_path_ops);
 
 -- Updated-at trigger

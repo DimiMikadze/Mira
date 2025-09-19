@@ -14,7 +14,7 @@ import { PROGRESS_EVENTS, type ProgressEventType } from 'mira-ai/types';
 import type { CompanyAnalysis as CompanyAnalysisType } from 'mira-ai/types';
 import { CircleAlert } from 'lucide-react';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { API_ENDPOINTS, sourcesArrayToObject } from '@/lib/utils';
+import { API_ENDPOINTS, workspaceToEnrichmentSources, workspaceToAnalysis } from '@/lib/utils';
 import { WorkspaceRow } from '@/lib/supabase/orm';
 import { User } from '@supabase/supabase-js';
 
@@ -66,7 +66,8 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
         method: 'POST',
         body: JSON.stringify({
           url,
-          sources: sourcesArrayToObject(currentWorkspace.sources),
+          sources: workspaceToEnrichmentSources(currentWorkspace),
+          analysis: workspaceToAnalysis(currentWorkspace),
           dataPoints: currentWorkspace.datapoints,
         }),
         headers: {
@@ -178,7 +179,8 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
             progressMessage={progressMessage}
             currentEventType={currentEventType}
             stepMessages={stepMessages}
-            sources={sourcesArrayToObject(currentWorkspace.sources)}
+            sources={workspaceToEnrichmentSources(currentWorkspace)}
+            analysis={workspaceToAnalysis(currentWorkspace)}
           />
         )}
 

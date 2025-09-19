@@ -1,7 +1,8 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { EnrichmentSources } from 'mira-ai/types';
+import type { EnrichmentSources, Analysis } from 'mira-ai/types';
 import type { Database } from '@/constants/database.types';
+import type { WorkspaceRow } from './supabase/orm';
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -49,27 +50,22 @@ export const storage = {
 };
 
 /**
- * Converts Supabase database sources array to EnrichmentSources object format
+ * Converts WorkspaceRow database fields to EnrichmentSources object format
  */
-export function sourcesArrayToObject(sources: Database['public']['Enums']['source'][]): EnrichmentSources {
+export function workspaceToEnrichmentSources(workspace: WorkspaceRow): EnrichmentSources {
   return {
-    crawl: sources.includes('crawl'),
-    google: sources.includes('google'),
-    linkedin: sources.includes('linkedin'),
-    analysis: sources.includes('analysis'),
+    crawl: workspace.source_crawl,
+    google: workspace.source_google,
+    linkedin: workspace.source_linkedin,
   };
 }
 
 /**
- * Converts EnrichmentSources object to Supabase database sources array format
+ * Converts WorkspaceRow database fields to Analysis object format
  */
-export function sourcesObjectToArray(sources: EnrichmentSources): Database['public']['Enums']['source'][] {
-  const result: Database['public']['Enums']['source'][] = [];
-
-  if (sources.crawl) result.push('crawl');
-  if (sources.google) result.push('google');
-  if (sources.linkedin) result.push('linkedin');
-  if (sources.analysis) result.push('analysis');
-
-  return result;
+export function workspaceToAnalysis(workspace: WorkspaceRow): Analysis {
+  return {
+    executiveSummary: workspace.analysis_executive_summary,
+    companyCriteria: workspace.analysis_company_criteria || undefined,
+  };
 }
