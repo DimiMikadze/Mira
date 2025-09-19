@@ -14,8 +14,9 @@ export type Database = {
   }
   public: {
     Tables: {
-      Campaign: {
+      Workspace: {
         Row: {
+          company_criteria: string | null
           created_at: string
           datapoints: Json
           id: string
@@ -25,6 +26,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_criteria?: string | null
           created_at?: string
           datapoints?: Json
           id?: string
@@ -34,6 +36,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_criteria?: string | null
           created_at?: string
           datapoints?: Json
           id?: string
@@ -52,7 +55,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      source: "crawl" | "linkedin" | "google"
+      source: "crawl" | "linkedin" | "google" | "analysis"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -180,7 +183,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      source: ["crawl", "linkedin", "google"],
+      source: ["crawl", "linkedin", "google", "analysis"],
     },
   },
 } as const

@@ -2,7 +2,7 @@ import { Database } from '@/constants/database.types';
 import { SupabaseClient, User } from '@supabase/supabase-js';
 
 export const Tables = {
-  Campaign: 'Campaign',
+  Workspace: 'Workspace',
 };
 
 //=========================
@@ -17,101 +17,101 @@ export async function getAuthUser(supabase: SupabaseClient): Promise<User | null
 }
 
 //=========================
-// Campaign
+// Workspace
 //=========================
-export type CampaignRecord = Database['public']['Tables']['Campaign'];
-export type CampaignRow = CampaignRecord['Row'];
+export type WorkspaceRecord = Database['public']['Tables']['Workspace'];
+export type WorkspaceRow = WorkspaceRecord['Row'];
 
-export const createCampaign = async (supabase: SupabaseClient, campaign: CampaignRecord['Insert']) => {
+export const createWorkspace = async (supabase: SupabaseClient, Workspace: WorkspaceRecord['Insert']) => {
   try {
-    const { data, error } = await supabase.from(Tables.Campaign).insert(campaign).select('*').single();
+    const { data, error } = await supabase.from(Tables.Workspace).insert(Workspace).select('*').single();
 
     if (error) {
-      console.error('Error inserting campaign:', error);
+      console.error('Error inserting Workspace:', error);
       throw new Error(error.message);
     }
 
     return data;
   } catch (err) {
-    console.error('Unexpected error in createCampaign:', err);
-    throw new Error('Failed to create campaign');
+    console.error('Unexpected error in createWorkspace:', err);
+    throw new Error('Failed to create Workspace');
   }
 };
 
-export const updateCampaign = async (
+export const updateWorkspace = async (
   supabase: SupabaseClient,
-  campaignId: string,
-  updatedFields: Partial<CampaignRecord['Update']>
+  WorkspaceId: string,
+  updatedFields: Partial<WorkspaceRecord['Update']>
 ) => {
   try {
     const { data, error } = await supabase
-      .from(Tables.Campaign)
+      .from(Tables.Workspace)
       .update(updatedFields)
-      .eq('id', campaignId)
+      .eq('id', WorkspaceId)
       .select('id')
       .select('*')
       .single();
 
     if (error) {
-      console.error('Error updating campaign:', error);
+      console.error('Error updating Workspace:', error);
       throw new Error(error.message);
     }
 
     return data;
   } catch (err) {
-    console.error('Unexpected error in updateCampaign:', err);
-    throw new Error('Failed to update campaign');
+    console.error('Unexpected error in updateWorkspace:', err);
+    throw new Error('Failed to update Workspace');
   }
 };
 
-export const getCampaignById = async (supabase: SupabaseClient, campaignId: string) => {
+export const getWorkspaceById = async (supabase: SupabaseClient, WorkspaceId: string) => {
   try {
-    const { data, error } = await supabase.from(Tables.Campaign).select('*').eq('id', campaignId).single();
+    const { data, error } = await supabase.from(Tables.Workspace).select('*').eq('id', WorkspaceId).single();
 
     if (error) {
-      console.error('Error fetching campaign by ID:', error);
+      console.error('Error fetching Workspace by ID:', error);
       return null;
     }
 
     return data;
   } catch (err) {
-    console.error('Unexpected error in getCampaignById:', err);
+    console.error('Unexpected error in getWorkspaceById:', err);
     return null;
   }
 };
 
-export const getCampaigns = async (supabase: SupabaseClient, authUserId: string) => {
+export const getWorkspaces = async (supabase: SupabaseClient, authUserId: string) => {
   try {
     const { data, error } = await supabase
-      .from(Tables.Campaign)
+      .from(Tables.Workspace)
       .select('*')
       .eq('user_id', authUserId)
       .order('created_at', { ascending: true });
 
     if (error) {
-      console.error('Error fetching campaigns for user:', error);
+      console.error('Error fetching Workspaces for user:', error);
       return [];
     }
 
     return data;
   } catch (err) {
-    console.error('Unexpected error in getCampaigns:', err);
+    console.error('Unexpected error in getWorkspaces:', err);
     return [];
   }
 };
 
-export const deleteCampaignById = async (supabase: SupabaseClient, campaignId: string) => {
+export const deleteWorkspaceById = async (supabase: SupabaseClient, WorkspaceId: string) => {
   try {
-    const { data, error } = await supabase.from(Tables.Campaign).delete().eq('id', campaignId).select('id').single();
+    const { data, error } = await supabase.from(Tables.Workspace).delete().eq('id', WorkspaceId).select('id').single();
 
     if (error) {
-      console.error('Error deleting campaign by ID:', error);
+      console.error('Error deleting Workspace by ID:', error);
       throw new Error(error.message);
     }
 
     return data;
   } catch (err) {
-    console.error('Unexpected error in deleteCampaignById:', err);
-    throw new Error('Failed to delete campaign');
+    console.error('Unexpected error in deleteWorkspaceById:', err);
+    throw new Error('Failed to delete Workspace');
   }
 };

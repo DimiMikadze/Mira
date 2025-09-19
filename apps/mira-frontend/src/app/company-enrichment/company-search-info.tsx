@@ -1,21 +1,14 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, MessageSquare, Target, Info } from 'lucide-react';
-
-interface CompanySearchInfoProps {
-  companyCriteria: string;
-}
+import { BarChart3, MessageSquare, Target } from 'lucide-react';
 
 /**
  * Company Search Info Component
  *
  * Displays welcome content explaining the enrichment process
- * and conditionally shows criteria guidance for new users.
  */
-const CompanySearchInfo = ({ companyCriteria }: CompanySearchInfoProps) => {
-  const hasCriteria = companyCriteria.trim().length > 0;
-
+const CompanySearchInfo = () => {
   return (
     <div className='mt-8 mb-8 mx-auto'>
       <div className='text-center mb-8'>
@@ -45,18 +38,6 @@ const CompanySearchInfo = ({ companyCriteria }: CompanySearchInfoProps) => {
           <p className='text-md text-gray-700 mt-2'>See where each insight comes from</p>
         </div>
       </div>
-
-      {/* criteria note - only show if user doesn't have criteria */}
-      {!hasCriteria && (
-        <div className='mt-28 text-center'>
-          <div className='inline-flex items-center justify-center gap-2 border bg-gray-50 rounded-md p-4'>
-            <Info className='w-6 h-6' />
-            <p className='text-sm text-gray-700'>
-              Click the user icon next to the search bar to add your Company Criteria for a fit score.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

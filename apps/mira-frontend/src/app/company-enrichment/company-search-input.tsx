@@ -1,20 +1,28 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tooltip, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import CompanyCriteriaForm, { type CompanyCriteriaFormRef } from './company-criteria-form';
-import { Search, Lightbulb, UserPlus, UserCheck } from 'lucide-react';
-import { isValidURL, companyCriteriaUtils } from '@/lib/utils';
-import React, { useState, useEffect, useRef } from 'react';
-
-/* eslint-disable @next/next/no-img-element */
+import { ChevronDown, Folder, FolderPlus, Search, Edit } from 'lucide-react';
+import { isValidURL } from '@/lib/utils';
+import React, { useState } from 'react';
+import { createWorkspace, updateWorkspace, WorkspaceRow } from '@/lib/supabase/orm';
+import { User } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+import CompanyWorkspaceModal from './company-workspace-modal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 interface CompanySearchInputProps {
   onSubmit: (url: string) => void;
   isLoading: boolean;
-  companyCriteria: string;
-  companyCriteriaLoaded: boolean;
-  onCompanyCriteriaChange: () => void;
+  workspaces: WorkspaceRow[];
+  currentWorkspace: WorkspaceRow | null;
+  authUser: User;
+  setCurrentWorkspace: React.Dispatch<React.SetStateAction<WorkspaceRow | null>>;
 }
 
 /**
@@ -26,21 +34,16 @@ interface CompanySearchInputProps {
 const CompanySearchInput = ({
   onSubmit,
   isLoading,
-  companyCriteria,
-  companyCriteriaLoaded,
-  onCompanyCriteriaChange,
+  workspaces,
+  currentWorkspace,
+  authUser,
+  setCurrentWorkspace,
 }: CompanySearchInputProps) => {
   const [url, setUrl] = useState('');
   const [clientErrorMessage, setClientErrorMessage] = useState('');
-  const [showCompanyCriteriaWarning, setShowCompanyCriteriaWarning] = useState(false);
-  const [companyCriteriaWarningDismissed, setIsCompanyCriteriaWarningDismissed] = useState(false);
-  const companyCriteriaFormRef = useRef<CompanyCriteriaFormRef>(null);
-  const hasCompanyCriteria = companyCriteria.trim().length > 0;
-
-  // Check if company criteria warning was previously dismissed
-  useEffect(() => {
-    setIsCompanyCriteriaWarningDismissed(companyCriteriaUtils.isCompanyCriteriaWarningDismissed());
-  }, []);
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<WorkspaceRow | undefined>(undefined);
+  const router = useRouter();
 
   // Enhanced onChange handler that clears error when valid URL is typed
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,46 +70,95 @@ const CompanySearchInput = ({
     // Clear error
     setClientErrorMessage('');
 
-    // Check if we should show company criteria warning (only if company criteria data is loaded)
-    if (companyCriteriaLoaded && !hasCompanyCriteria && !companyCriteriaWarningDismissed) {
-      setShowCompanyCriteriaWarning(true);
-      return; // Don't submit yet, wait for user response
-    }
-
     // Submit the form
     onSubmit(url);
   };
 
-  // Handle company criteria warning actions
-  const handleContinueWithoutCOmpanyCriteria = () => {
-    companyCriteriaUtils.dismissCompanyCriteriaWarning();
-    setIsCompanyCriteriaWarningDismissed(true);
-    setShowCompanyCriteriaWarning(false);
-    onSubmit(url);
+  const openWorkspaceCreate = () => {
+    setEditingWorkspace(undefined);
+    setIsWorkspaceModalOpen(true);
   };
 
-  const handleAddCompanyCriteria = () => {
-    companyCriteriaUtils.dismissCompanyCriteriaWarning();
-    setIsCompanyCriteriaWarningDismissed(true);
-    setShowCompanyCriteriaWarning(false);
-    companyCriteriaFormRef.current?.openDialog();
+  const openWorkspaceEdit = (workspace: WorkspaceRow, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingWorkspace(workspace);
+    setIsWorkspaceModalOpen(true);
   };
 
-  // Update company criteria state when criteria form dialog changes
-  const handleCompanyCriteriaDialogChange = (open: boolean) => {
-    if (!open) {
-      // Dialog closed, update parent state
-      onCompanyCriteriaChange();
+  const handleWorkspaceSave = async (workspaceData: Partial<WorkspaceRow>) => {
+    try {
+      const supabase = createSupabaseClient();
+
+      if (editingWorkspace && workspaceData.id) {
+        // Update existing workspace
+        const updatedWorkspace = await updateWorkspace(supabase, workspaceData.id, workspaceData);
+        setCurrentWorkspace(updatedWorkspace);
+      } else {
+        // Create new workspace
+        const newWorkspace = await createWorkspace(supabase, {
+          name: workspaceData.name!,
+          user_id: authUser.id,
+          company_criteria: workspaceData.company_criteria,
+          datapoints: workspaceData.datapoints,
+          sources: workspaceData.sources,
+        });
+        setCurrentWorkspace(newWorkspace);
+      }
+
+      setIsWorkspaceModalOpen(false);
+      // Refresh the page to get updated workspaces from server
+      router.refresh();
+    } catch (error) {
+      console.error('Error saving workspace:', error);
     }
   };
 
   return (
-    <div className='w-full border-b border-gray-200 py-4 bg-gray-100 px-4'>
+    <div className='w-full px-4'>
       {/* Company URL input */}
+
       <form onSubmit={handleSubmit} className='mx-auto max-w-4xl'>
-        <div className='relative w-full mx-auto flex items-center gap-4'>
-          {/* Logo */}
-          <img src='/logo.svg' alt='Mira Logo' className='hidden sm:block h-6 w-auto flex-shrink-0' />
+        <div className='relative w-full mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4'>
+          {/** Workspaces dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type='button'
+                variant='outline'
+                className='h-14 rounded-full gap-2 pl-3 pr-2 max-w-full sm:max-w-[240px] truncate border-gray-300 hover:border-gray-400 focus:border-black focus:border-2 transition-colors'
+              >
+                <span className='truncate'>{currentWorkspace ? currentWorkspace.name : 'Select workspace'}</span>
+                <ChevronDown className='h-4 w-4 opacity-70' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='start' className='w-72'>
+              <DropdownMenuItem onClick={openWorkspaceCreate} className='gap-2'>
+                <FolderPlus className='h-4 w-4' />
+                Create workspace
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {workspaces.length === 0 ? (
+                <DropdownMenuItem disabled>No workspaces yet</DropdownMenuItem>
+              ) : (
+                workspaces.map((ws) => (
+                  <DropdownMenuItem key={ws.id} onClick={() => setCurrentWorkspace(ws)} className='gap-2 group'>
+                    <Folder className='h-4 w-4' />
+                    <span className='truncate flex-1'>{ws.name}</span>
+                    <Button
+                      variant='ghost'
+                      size='sm'
+                      className='h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity'
+                      onClick={(e) => openWorkspaceEdit(ws, e)}
+                    >
+                      <Edit className='h-3 w-3' />
+                    </Button>
+                  </DropdownMenuItem>
+                ))
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/** Input and Button */}
           <div className='relative w-full'>
             <Input
               type='text'
@@ -119,63 +171,7 @@ const CompanySearchInput = ({
               onChange={handleUrlChange}
               value={url}
             />
-            <div className='absolute right-16 top-1/2 -translate-y-1/2'>
-              <TooltipProvider>
-                <Tooltip open={showCompanyCriteriaWarning} onOpenChange={() => {}}>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <Button
-                        type='button'
-                        variant='ghost'
-                        size='icon'
-                        className='h-8 w-8 border-0 cursor-pointer hover:bg-gray-200'
-                        onClick={() => companyCriteriaFormRef.current?.openDialog()}
-                        aria-label={hasCompanyCriteria ? 'Edit Company Criteria' : 'Set Company Criteria'}
-                      >
-                        {hasCompanyCriteria ? (
-                          <UserCheck className='w-6 h-6 text-green-600' />
-                        ) : (
-                          <UserPlus className='w-6 h-6 text-gray-600' />
-                        )}
-                      </Button>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipPrimitive.Portal>
-                    <TooltipPrimitive.Content
-                      side='bottom'
-                      align='end'
-                      sideOffset={4}
-                      className='max-w-sm p-4 bg-white border border-gray-200 shadow-lg rounded-lg z-50 animate-in fade-in-0 zoom-in-95'
-                    >
-                      <div className='space-y-3'>
-                        <div className='flex items-start gap-2'>
-                          <Lightbulb className='w-4 h-4 mt-0.5 flex-shrink-0' />
-                          <div>
-                            <p className='font-medium'>Add Company Criteria for a Fit Score</p>
-                            <p className='text-sm text-gray-700 mt-4'>
-                              Add criteria like industry, size, or region to get a Fit Score.
-                            </p>
-                          </div>
-                        </div>
-                        <div className='flex gap-4 pt-2 mt-4'>
-                          <Button size='sm' onClick={handleAddCompanyCriteria} className='cursor-pointer'>
-                            Add Criteria
-                          </Button>
-                          <Button
-                            size='sm'
-                            variant='outline'
-                            onClick={handleContinueWithoutCOmpanyCriteria}
-                            className=' bg-white border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer'
-                          >
-                            Continue without Criteria
-                          </Button>
-                        </div>
-                      </div>
-                    </TooltipPrimitive.Content>
-                  </TooltipPrimitive.Portal>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
+
             <Button
               disabled={isLoading}
               type='submit'
@@ -189,11 +185,13 @@ const CompanySearchInput = ({
         {clientErrorMessage && <div className='text-red-500 text-sm mt-3 ml-0 sm:ml-34'>{clientErrorMessage}</div>}
       </form>
 
-      {/* criteria Form - Outside main form to prevent nesting issues */}
-      <CompanyCriteriaForm
-        ref={companyCriteriaFormRef}
-        onOpenChange={handleCompanyCriteriaDialogChange}
-        onCompanyCriteriaSaved={onCompanyCriteriaChange}
+      {/* Workspace Modal */}
+      <CompanyWorkspaceModal
+        open={isWorkspaceModalOpen}
+        onOpenChange={setIsWorkspaceModalOpen}
+        workspace={editingWorkspace}
+        authUser={authUser}
+        onSave={handleWorkspaceSave}
       />
     </div>
   );

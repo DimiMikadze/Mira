@@ -4,7 +4,6 @@ import React from 'react';
 import { PROGRESS_EVENTS, type ProgressEventType, type EnrichmentSources } from 'mira-ai/types';
 import { Check, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { companyCriteriaUtils } from '@/lib/utils';
 
 interface CompanyProgressProps {
   /** Current progress message to display */
@@ -214,12 +213,12 @@ const CompanyProgress = ({
         <Skeleton className='h-6 mt-4 w-[200px]' />
 
         {/* fit Score - Only show if criteria is defined */}
-        {companyCriteriaUtils.hasCompanyCriteria() && (
+        {/* {companyCriteriaUtils.hasCompanyCriteria() && (
           <>
             <Skeleton className='w-24 h-24 rounded-full mt-4' />
             <Skeleton className='h-[125px] rounded-xl w-full' />
           </>
-        )}
+        )} */}
 
         {/* Sections */}
         <Skeleton className='h-4 mt-4 w-[150px]' />

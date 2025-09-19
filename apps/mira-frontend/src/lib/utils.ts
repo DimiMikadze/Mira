@@ -1,11 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-// Storage keys for localStorage
-const STORAGE_KEYS = {
-  COMPANY_CRITERIA: 'company-criteria',
-  COMPANY_CRITERIA_WARNING_DISMISSED: 'company-criteria-warning-dismissed',
-} as const;
+import type { EnrichmentSources } from 'mira-ai/types';
+import type { Database } from '@/constants/database.types';
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -53,27 +49,27 @@ export const storage = {
 };
 
 /**
- * Company criteria specific utility functions
+ * Converts Supabase database sources array to EnrichmentSources object format
  */
-export const companyCriteriaUtils = {
-  hasCompanyCriteria: (): boolean => {
-    const criteria = storage.get(STORAGE_KEYS.COMPANY_CRITERIA);
-    return criteria !== null && criteria.trim().length > 0;
-  },
+export function sourcesArrayToObject(sources: Database['public']['Enums']['source'][]): EnrichmentSources {
+  return {
+    crawl: sources.includes('crawl'),
+    google: sources.includes('google'),
+    linkedin: sources.includes('linkedin'),
+    analysis: sources.includes('analysis'),
+  };
+}
 
-  getCompanyCriteria: (): string => {
-    return storage.get(STORAGE_KEYS.COMPANY_CRITERIA) || '';
-  },
+/**
+ * Converts EnrichmentSources object to Supabase database sources array format
+ */
+export function sourcesObjectToArray(sources: EnrichmentSources): Database['public']['Enums']['source'][] {
+  const result: Database['public']['Enums']['source'][] = [];
 
-  setCompanyCriteria: (criteria: string): void => {
-    storage.set(STORAGE_KEYS.COMPANY_CRITERIA, criteria.trim());
-  },
+  if (sources.crawl) result.push('crawl');
+  if (sources.google) result.push('google');
+  if (sources.linkedin) result.push('linkedin');
+  if (sources.analysis) result.push('analysis');
 
-  isCompanyCriteriaWarningDismissed: (): boolean => {
-    return storage.get(STORAGE_KEYS.COMPANY_CRITERIA_WARNING_DISMISSED) === 'true';
-  },
-
-  dismissCompanyCriteriaWarning: (): void => {
-    storage.set(STORAGE_KEYS.COMPANY_CRITERIA_WARNING_DISMISSED, 'true');
-  },
-};
+  return result;
+}
