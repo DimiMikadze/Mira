@@ -116,14 +116,17 @@ export const tryEarlyTermination = async (
 
     // Run company analysis based on configuration
     let companyAnalysis: CompanyAnalysis | undefined;
-    const hasCriteria = context.companyCriteria && context.companyCriteria.trim().length > 0;
-    const shouldRunAnalysis = hasCriteria || context.sourcesConfig.analysis;
+    const hasExecutiveSummary = context.analysisConfig?.executiveSummary;
+    const hasCompanyCriteria = Boolean(
+      context.analysisConfig?.companyCriteria && context.analysisConfig.companyCriteria.trim().length > 0
+    );
+    const shouldRunAnalysis = hasExecutiveSummary || hasCompanyCriteria;
 
     if (shouldRunAnalysis) {
-      context.progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
+      context.progressReporter.reportCompanyAnalysisStarted(hasCompanyCriteria);
       const enrichedCompany = { ...baseDataPoints };
       companyAnalysis = await runCompanyAnalysisStep({
-        companyCriteria: context.companyCriteria,
+        companyCriteria: context.analysisConfig?.companyCriteria,
         enrichedCompany,
       });
       if (companyAnalysis) {

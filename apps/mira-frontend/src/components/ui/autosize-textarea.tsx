@@ -4,6 +4,8 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useImperativeHandle } from 'react';
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
 interface UseAutosizeTextAreaProps {
   textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
   minHeight?: number;

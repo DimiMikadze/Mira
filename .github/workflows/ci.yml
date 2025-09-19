@@ -16,3 +16,7 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run build
+        env:
+          # Dummy values for build - actual values are set in Vercel
+          NEXT_PUBLIC_SUPABASE_URL: https://dummy.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-key-for-build

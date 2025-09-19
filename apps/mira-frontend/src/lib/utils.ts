@@ -1,11 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-// Storage keys for localStorage
-const STORAGE_KEYS = {
-  COMPANY_CRITERIA: 'company-criteria',
-  COMPANY_CRITERIA_WARNING_DISMISSED: 'company-criteria-warning-dismissed',
-} as const;
+import type { EnrichmentSources, Analysis } from 'mira-ai/types';
+import type { WorkspaceRow } from './supabase/orm';
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -53,27 +49,22 @@ export const storage = {
 };
 
 /**
- * Company criteria specific utility functions
+ * Converts WorkspaceRow database fields to EnrichmentSources object format
  */
-export const companyCriteriaUtils = {
-  hasCompanyCriteria: (): boolean => {
-    const criteria = storage.get(STORAGE_KEYS.COMPANY_CRITERIA);
-    return criteria !== null && criteria.trim().length > 0;
-  },
+export function workspaceToEnrichmentSources(workspace: WorkspaceRow): EnrichmentSources {
+  return {
+    crawl: workspace.source_crawl,
+    google: workspace.source_google,
+    linkedin: workspace.source_linkedin,
+  };
+}
 
-  getCompanyCriteria: (): string => {
-    return storage.get(STORAGE_KEYS.COMPANY_CRITERIA) || '';
-  },
-
-  setCompanyCriteria: (criteria: string): void => {
-    storage.set(STORAGE_KEYS.COMPANY_CRITERIA, criteria.trim());
-  },
-
-  isCompanyCriteriaWarningDismissed: (): boolean => {
-    return storage.get(STORAGE_KEYS.COMPANY_CRITERIA_WARNING_DISMISSED) === 'true';
-  },
-
-  dismissCompanyCriteriaWarning: (): void => {
-    storage.set(STORAGE_KEYS.COMPANY_CRITERIA_WARNING_DISMISSED, 'true');
-  },
-};
+/**
+ * Converts WorkspaceRow database fields to Analysis object format
+ */
+export function workspaceToAnalysis(workspace: WorkspaceRow): Analysis {
+  return {
+    executiveSummary: workspace.analysis_executive_summary,
+    companyCriteria: workspace.analysis_company_criteria || undefined,
+  };
+}

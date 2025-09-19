@@ -4,7 +4,6 @@ import React from 'react';
 import { PROGRESS_EVENTS, type ProgressEventType, type EnrichmentSources } from 'mira-ai/types';
 import { Check, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { companyCriteriaUtils } from '@/lib/utils';
 
 interface CompanyProgressProps {
   /** Current progress message to display */
@@ -15,8 +14,11 @@ interface CompanyProgressProps {
   stepMessages?: Record<string, string>;
   /** Source configuration to determine which steps to show */
   sources?: EnrichmentSources;
-  /** Company criteria to determine if analysis should run */
-  companyCriteria?: string;
+  /** Analysis configuration to determine if analysis should run */
+  analysis?: {
+    executiveSummary?: boolean;
+    companyCriteria?: string;
+  };
 }
 
 /**
@@ -27,45 +29,38 @@ const ALL_STEPS = [
   { event: PROGRESS_EVENTS.INTERNAL_PAGES_STARTED, sourceKey: 'crawl' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.LINKEDIN_STARTED, sourceKey: 'linkedin' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED, sourceKey: 'google' as keyof EnrichmentSources },
-  { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, sourceKey: 'analysis' as keyof EnrichmentSources }, // Conditional based on analysis setting or company criteria
+  { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, isAnalysis: true }, // Conditional based on analysis configuration
 ] as const;
 
 /**
- * Build step order based on enabled sources and company criteria
+ * Build step order based on enabled sources and analysis configuration
  */
-const buildStepOrder = (sources?: EnrichmentSources, companyCriteria?: string) => {
-  if (!sources) {
-    // Default to discovery only if no sources config provided and no criteria
-    const steps = ALL_STEPS.filter((step) => 'required' in step && step.required);
-    // Add analysis if we have company criteria (even without explicit sources config)
-    if (companyCriteria && companyCriteria.trim()) {
-      const analysisStep = ALL_STEPS.find((step) => step.event === PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED);
-      if (analysisStep && !steps.includes(analysisStep)) {
-        steps.push(analysisStep);
-      }
-    }
-    return steps.map((step) => step.event);
-  }
-
-  const hasCriteria = companyCriteria && companyCriteria.trim().length > 0;
-
-  return ALL_STEPS.filter((step) => {
+const buildStepOrder = (
+  sources?: EnrichmentSources,
+  analysis?: { executiveSummary?: boolean; companyCriteria?: string }
+) => {
+  const steps = ALL_STEPS.filter((step) => {
     // Always include required steps
     if ('required' in step && step.required) {
       return true;
     }
 
-    // For optional steps, check if their source is enabled
-    if ('sourceKey' in step && step.sourceKey) {
-      // Special handling for company analysis: run if analysis is enabled OR if we have criteria
-      if (step.sourceKey === 'analysis') {
-        return sources[step.sourceKey] || hasCriteria;
-      }
+    // For source-dependent steps, check if their source is enabled
+    if ('sourceKey' in step && step.sourceKey && sources) {
       return sources[step.sourceKey];
     }
 
+    // For analysis step, check if analysis is configured
+    if ('isAnalysis' in step && step.isAnalysis) {
+      const hasExecutiveSummary = analysis?.executiveSummary;
+      const hasCompanyCriteria = analysis?.companyCriteria && analysis.companyCriteria.trim().length > 0;
+      return hasExecutiveSummary || hasCompanyCriteria;
+    }
+
     return false;
-  }).map((step) => step.event);
+  });
+
+  return steps.map((step) => step.event);
 };
 
 /** Type representing valid step events (subset of all progress events) */
@@ -110,10 +105,10 @@ const CompanyProgress = ({
   currentEventType,
   stepMessages = {},
   sources,
-  companyCriteria,
+  analysis,
 }: CompanyProgressProps) => {
-  // Build dynamic step order based on enabled sources and company criteria
-  const stepOrder = buildStepOrder(sources, companyCriteria);
+  // Build dynamic step order based on enabled sources and analysis configuration
+  const stepOrder = buildStepOrder(sources, analysis);
 
   /**
    * Calculate the current step index based on the event type
@@ -214,12 +209,12 @@ const CompanyProgress = ({
         <Skeleton className='h-6 mt-4 w-[200px]' />
 
         {/* fit Score - Only show if criteria is defined */}
-        {companyCriteriaUtils.hasCompanyCriteria() && (
+        {/* {companyCriteriaUtils.hasCompanyCriteria() && (
           <>
             <Skeleton className='w-24 h-24 rounded-full mt-4' />
             <Skeleton className='h-[125px] rounded-xl w-full' />
           </>
-        )}
+        )} */}
 
         {/* Sections */}
         <Skeleton className='h-4 mt-4 w-[150px]' />

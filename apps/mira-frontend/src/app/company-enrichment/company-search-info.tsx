@@ -1,25 +1,29 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, MessageSquare, Target, Info } from 'lucide-react';
-
-interface CompanySearchInfoProps {
-  companyCriteria: string;
-}
+import { BarChart3, MessageSquare, Target } from 'lucide-react';
+import { WorkspaceRow } from '@/lib/supabase/orm';
 
 /**
  * Company Search Info Component
  *
  * Displays welcome content explaining the enrichment process
- * and conditionally shows criteria guidance for new users.
  */
-const CompanySearchInfo = ({ companyCriteria }: CompanySearchInfoProps) => {
-  const hasCriteria = companyCriteria.trim().length > 0;
+interface CompanySearchInfoProps {
+  workspaces: WorkspaceRow[];
+}
+
+const CompanySearchInfo = ({ workspaces }: CompanySearchInfoProps) => {
+  const hasWorkspaces = workspaces.length > 0;
 
   return (
     <div className='mt-8 mb-8 mx-auto'>
       <div className='text-center mb-8'>
-        <p className='text-lg text-gray-700'>Enter a company website to get key insights and data analysis.</p>
+        <p className='text-lg text-gray-700'>
+          {hasWorkspaces
+            ? 'Select a workspace and enter a company website to begin.'
+            : 'Create a workspace and enter a company website to begin'}
+        </p>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-28'>
@@ -45,18 +49,6 @@ const CompanySearchInfo = ({ companyCriteria }: CompanySearchInfoProps) => {
           <p className='text-md text-gray-700 mt-2'>See where each insight comes from</p>
         </div>
       </div>
-
-      {/* criteria note - only show if user doesn't have criteria */}
-      {!hasCriteria && (
-        <div className='mt-28 text-center'>
-          <div className='inline-flex items-center justify-center gap-2 border bg-gray-50 rounded-md p-4'>
-            <Info className='w-6 h-6' />
-            <p className='text-sm text-gray-700'>
-              Click the user icon next to the search bar to add your Company Criteria for a fit score.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

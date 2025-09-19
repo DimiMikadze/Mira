@@ -1,6 +1,6 @@
-# Mira AI Core Library
+# Mira AI Library
 
-Mira is an agentic AI library that automates company research with configurable data points and intelligent source selection. It features smart early termination and can be integrated into applications, pipelines, or used standalone with the [demo frontend](../mira-frontend/README.md).
+Mira AI is an agentic AI library that automates company research with configurable data points and intelligent source selection. It features smart early termination and can be integrated into applications, pipelines, or used with the [complete frontend application](../../apps/mira-frontend/README.md).
 
 ## Architecture
 
@@ -19,10 +19,11 @@ Mira is an agentic AI library that automates company research with configurable 
 ### Key Features
 
 - **Configurable Data Points** – Define custom data points with names and descriptions
-- **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn, Google Search, and analysis
+- **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn, and Google Search (landing page is always analyzed)
 - **Smart Early Termination** – Automatically stops when all data points reach confidence thresholds
 - **Confidence-Based Merging** – Higher confidence scores take precedence when merging data
 - **Real-time Progress Events** – Live updates throughout the research process
+- **Company Analysis** – Optional executive summary generation and company criteria fit scoring
 
 ### Entry Points
 
@@ -57,18 +58,22 @@ const config = {
 };
 
 const result = await researchCompany('https://company.com', config, {
-  companyCriteria: 'B2B SaaS companies with 50-200 employees',
   enrichmentConfig: {
     dataPoints: [
       { name: 'industry', description: 'Primary business sector' },
       { name: 'employeeCount', description: 'Number of employees' },
       { name: 'funding', description: 'Latest funding round and amount' },
     ],
+    // Configure which sources to use (landing page is always analyzed)
     sources: {
       crawl: true, // Enable internal pages crawling
       linkedin: true, // Enable LinkedIn analysis
       google: true, // Enable Google Search
-      analysis: true, // Enable executive summary
+    },
+    // Configure analysis options
+    analysis: {
+      executiveSummary: true, // Generate executive summary
+      companyCriteria: 'B2B SaaS companies with 50-200 employees', // Evaluate fit against criteria
     },
   },
   onProgress: (type, message) => {
