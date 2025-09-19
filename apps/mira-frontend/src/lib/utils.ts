@@ -1,7 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { EnrichmentSources, Analysis } from 'mira-ai/types';
-import type { Database } from '@/constants/database.types';
 import type { WorkspaceRow } from './supabase/orm';
 
 // API endpoints
