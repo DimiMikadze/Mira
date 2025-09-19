@@ -1,20 +1,21 @@
-# Mira - AI Company Research Tool (Monorepo)
+# Mira - AI Company Research System (Monorepo)
 
-Agentic AI library that automates company research with configurable data points and intelligent source selection. Features modular orchestration, smart early termination, and confidence-based data merging.
+Agentic AI system that automates company research with configurable data points and intelligent source selection. Features modular orchestration, smart early termination, and confidence-based data merging.
 
 **Key Features:**
 
 - Configurable data points with custom descriptions for precise extraction
-- Intelligent source selection (website crawling, LinkedIn, Google Search, analysis)
+- Intelligent source selection (website crawling, LinkedIn, Google Search - landing page always analyzed)
+- Separate analysis configuration (executive summary, company criteria fit scoring)
 - Smart early termination when confidence thresholds are met
 - Modular orchestrator with separated concerns (context, flow, termination, results)
 - Real-time progress tracking with structured events
-- Company criteria evaluation with fit scoring (0-10)
+- Workspace management with user authentication and data persistence
 
 **MONOREPO STRUCTURE**:
 
-- `packages/mira-ai/` - Core TypeScript library (reusable npm package)
-- `apps/mira-frontend/` - Next.js 15 frontend application
+- `packages/mira-ai/` - Core TypeScript library (framework-agnostic npm package)
+- `apps/mira-frontend/` - Complete Next.js 15 application with Supabase integration
 
 ## Code Style & Naming
 

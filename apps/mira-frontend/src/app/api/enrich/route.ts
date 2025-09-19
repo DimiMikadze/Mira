@@ -1,5 +1,7 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getAuthUser } from '@/lib/supabase/orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +13,13 @@ export const dynamic = 'force-dynamic';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const supabase = await createSupabaseServerClient();
+    const authUser = await getAuthUser(supabase);
+    if (!authUser) {
+      return NextResponse.json('Unauthorized.', { status: 401 });
+    }
+
     const { url, sources, analysis, dataPoints } = await request.json();
 
     if (!url) {

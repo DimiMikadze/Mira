@@ -130,7 +130,6 @@ For running the frontend, create a `.env.local` file with additional Supabase co
 OPENAI_API_KEY=sk-xxxx
 SCRAPING_BEE_API_KEY=xxxx
 
-# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
