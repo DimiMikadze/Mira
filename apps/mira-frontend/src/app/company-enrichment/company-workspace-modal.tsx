@@ -142,7 +142,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder='e.g., B2B SaaS Prospects' {...field} />
+                      <Input placeholder='Name your workspace' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -153,7 +153,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
             {/* Data Points */}
             <WorkspaceSection
               title='Custom Data Points'
-              description='Define the fields you want Mira to extract. You need at least one.'
+              description='Define the data points you want Mira to extract. You need at least one.'
             >
               <div className='space-y-4'>
                 {fields.map((field, index) => (
@@ -168,7 +168,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                             <FormItem>
                               <FormLabel>Name</FormLabel>
                               <FormControl>
-                                <Input placeholder='e.g., Headcount' {...field} />
+                                <Input placeholder='e.g., Industry' {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -186,7 +186,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                               <FormItem className='flex-1'>
                                 <FormLabel>Description</FormLabel>
                                 <FormControl>
-                                  <Input placeholder='e.g., Estimated number of employees' {...field} />
+                                  <Input placeholder='e.g., Main sector the company operates in' {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -220,7 +220,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
             {/* Sources */}
             <WorkspaceSection
               title='Sources (optional)'
-              description='Mira always scrapes the main landing page. You can enable additional sources for more comprehensive data.'
+              description='Mira always processes the company’s main landing page. You can also enable additional sources for a more complete view.'
             >
               <div className='grid gap-4'>
                 <FormField
@@ -230,7 +230,10 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                     <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
                       <div>
                         <FormLabel className='text-base'>Website Crawl</FormLabel>
-                        <FormDescription>Company site and internal pages.</FormDescription>
+                        <FormDescription>
+                          Mira explores key internal pages on the company&apos;s website and collects information from
+                          them.
+                        </FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={!!field.value} onCheckedChange={field.onChange} />
@@ -246,7 +249,9 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                     <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
                       <div>
                         <FormLabel className='text-base'>LinkedIn</FormLabel>
-                        <FormDescription>Company profile and signals.</FormDescription>
+                        <FormDescription>
+                          Mira gathers insights directly from the company&apos;s LinkedIn profile.
+                        </FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={!!field.value} onCheckedChange={field.onChange} />
@@ -262,7 +267,9 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                     <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
                       <div>
                         <FormLabel className='text-base'>Google</FormLabel>
-                        <FormDescription>Search results and news.</FormDescription>
+                        <FormDescription>
+                          Mira runs tailored Google searches to gather additional context and coverage.
+                        </FormDescription>
                       </div>
                       <FormControl>
                         <Switch checked={!!field.value} onCheckedChange={field.onChange} />

@@ -171,7 +171,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
           </Alert>
         )}
         {/* Welcome content - only show when not loading and no enriched data */}
-        {!isLoading && !enrichedCompany && <CompanySearchInfo />}
+        {!isLoading && !enrichedCompany && <CompanySearchInfo workspaces={workspaces} />}
 
         {/* Progress component */}
         {isLoading && currentWorkspace && (

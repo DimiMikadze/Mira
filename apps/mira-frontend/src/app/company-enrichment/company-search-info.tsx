@@ -2,17 +2,28 @@
 
 import React from 'react';
 import { BarChart3, MessageSquare, Target } from 'lucide-react';
+import { WorkspaceRow } from '@/lib/supabase/orm';
 
 /**
  * Company Search Info Component
  *
  * Displays welcome content explaining the enrichment process
  */
-const CompanySearchInfo = () => {
+interface CompanySearchInfoProps {
+  workspaces: WorkspaceRow[];
+}
+
+const CompanySearchInfo = ({ workspaces }: CompanySearchInfoProps) => {
+  const hasWorkspaces = workspaces.length > 0;
+
   return (
     <div className='mt-8 mb-8 mx-auto'>
       <div className='text-center mb-8'>
-        <p className='text-lg text-gray-700'>Enter a company website to get key insights and data analysis.</p>
+        <p className='text-lg text-gray-700'>
+          {hasWorkspaces
+            ? 'Select a workspace and enter a company website to begin.'
+            : 'Create a workspace and enter a company website to begin'}
+        </p>
       </div>
 
       <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-28'>

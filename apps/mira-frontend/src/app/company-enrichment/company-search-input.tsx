@@ -176,7 +176,7 @@ const CompanySearchInput = ({
             />
 
             <Button
-              disabled={isLoading}
+              disabled={isLoading || !currentWorkspace}
               type='submit'
               className='absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full p-0 cursor-pointer'
             >
