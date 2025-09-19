@@ -2,7 +2,7 @@
   <img src="apps/mira-frontend/public/logo.svg" alt="Mira Logo" width="300" />
 </p>
 
-<p align="center">Agentic AI Library for Company Research</p>
+<p align="center">Agentic AI System for Company Research</p>
 
 <div align="center">
 
@@ -21,13 +21,13 @@
 
 # About Mira
 
-Mira is an agentic AI library that automates company research with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
+Mira is an agentic AI system that automates company research with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
 
-The system features smart early termination - once all configured data points reach high confidence scores, it automatically stops processing to save time and API costs. Sources are fully configurable, allowing you to enable or disable website crawling, LinkedIn analysis, Google Search, and executive summary generation based on your needs.
+The system features smart early termination - once all configured data points reach high confidence scores, it automatically stops processing to save time and API costs. Sources are fully configurable, allowing you to enable or disable website crawling, LinkedIn analysis, and Google Search based on your needs.
 
 The core of Mira is a framework-agnostic library that can be published as an npm package or integrated directly into your applications, pipelines, or custom workflows.
 
-To demonstrate how it works in practice, this repository includes a Next.js frontend that consumes the core library and provides a simple interface for running research and viewing results.
+To show how it works in practice, this repository includes a complete Next.js frontend application that consumes the core library and provides a full interface with workspace management for running research and viewing results.
 
 ## Mira in action
 
@@ -38,15 +38,15 @@ To demonstrate how it works in practice, this repository includes a Next.js fron
 ## Key Features
 
 - **Configurable Data Points** – Define exactly what information to collect (company name, industry, funding, etc.) with custom descriptions for precise extraction.
-- **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn analysis, Google Search, and executive summary generation based on your needs.
+- **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn analysis, and Google Search based on your needs.
 - **Smart Early Termination** – Automatically stops processing when all data points reach high confidence scores, saving time and API costs.
 - **Multi-Agent Architecture** – Specialized agents handle discovery, internal pages, LinkedIn, Google Search, and analysis, with intelligent orchestration.
 - **Confidence Scoring & Source Attribution** – Each fact includes a confidence score (1-5) and references its source for transparency and trust.
-- **Company Criteria Matching** – Evaluate companies against custom criteria with fit scores (0-10) and detailed reasoning.
+- **Company Analysis & Criteria Matching** – Generate executive summaries and evaluate companies against custom criteria with fit scores (0-10) and detailed reasoning.
 - **Realtime Progress Events** – Emits structured events during execution so you can track and display live progress.
 - **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and cookie consent banners.
 - **Composable Core Library** – Framework-agnostic and publishable as an npm package, ready for Node.js/TypeScript projects.
-- **Example Next.js Frontend** – Shows how to consume the library with a simple web interface and live progress updates.
+- **Complete Next.js Frontend** – Full application showing how to consume the library with workspace management, user authentication, and live progress updates.
 
 ## How it works
 
@@ -55,8 +55,8 @@ Mira takes a company's website URL and your configuration, then intelligently or
 **Configuration**
 
 - **Data Points**: Define custom data points with names and descriptions (e.g., "industry": "Primary business sector or market vertical")
-- **Sources**: Enable/disable website crawling, LinkedIn analysis, Google Search, and executive summary generation
-- **Criteria**: Optionally provide company criteria for fit scoring and evaluation
+- **Sources**: Enable/disable website crawling, LinkedIn analysis, and Google Search (landing page is always analyzed)
+- **Analysis**: Optionally enable executive summary generation and/or provide company criteria for fit scoring
 
 **Intelligent Orchestration**
 
@@ -64,7 +64,7 @@ Mira takes a company's website URL and your configuration, then intelligently or
 2. **Internal pages agent** (if enabled) scans discovered pages for data points that need improvement
 3. **LinkedIn agent** (if enabled) gathers additional details, but only for missing or low-confidence data points
 4. **Google Search agent** (if enabled) queries for remaining gaps using targeted searches
-5. **Company analysis agent** (if enabled) generates executive summary and/or evaluates company criteria fit
+5. **Company analysis agent** (if configured) generates executive summary and/or evaluates company criteria fit
 
 **Smart Early Termination**
 
@@ -91,9 +91,11 @@ The system continuously monitors data point confidence scores. If all configured
 - **Zod** – runtime schema validation and input/output type enforcement.
 - **Jest** – testing framework for validating services and agents individually.
 
-### Frontend UI Demo (`apps/mira-frontend`)
+### Frontend Application (`apps/mira-frontend`)
 
-- **Next.js** – demo interface to run research and display results.
+- **Next.js** – full-featured interface to run research and display results.
+- **Supabase** – user authentication and workspace storage.
+- **Workspace Management** – create and manage multiple research configurations with custom data points, sources, and analysis settings.
 - **TypeScript** – Consumes core library types.
 - **TailwindCSS** – styling for the UI.
 - **shadcn/ui** – accessible, prebuilt UI components.
@@ -105,27 +107,40 @@ The system continuously monitors data point confidence scores. If all configured
 - **API Keys**:
   - `OPENAI_API_KEY` — for agent orchestration
   - `SCRAPING_BEE_API_KEY` — for web scraping and Google Search
+- **Supabase Account** (for frontend) — user authentication and workspace storage
 
 ## Environment Variables
 
 Mira requires API keys to function. Environment files are used to separate configuration for local development and testing.
 
-- `apps/mira-frontend/.env.local` — used when running the demo frontend.
-- `packages/mira-ai/.env.test` — used when running tests in the core library.
+### Core Library Testing (`packages/mira-ai/.env.test`)
 
-For both cases, the `.env` files should look like this:
+For testing the core library, create a `.env.test` file:
 
 ```
 OPENAI_API_KEY=sk-xxxx
 SCRAPING_BEE_API_KEY=xxxx
 ```
 
+### Frontend (`apps/mira-frontend/.env.local`)
+
+For running the frontend, create a `.env.local` file with additional Supabase configuration:
+
+```
+OPENAI_API_KEY=sk-xxxx
+SCRAPING_BEE_API_KEY=xxxx
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
 ## Installation & Setup
 
 You can use Mira in two ways:
 
-1. **Local Development** (run the demo frontend with the core library)
-2. **As an npm Package** (use the core library directly in your own project)
+1. **Local Development** (run the frontend application with workspaces and the core library)
+2. **As an npm Package** (use the mira-ai library directly in your own project)
 
 ---
 
@@ -139,20 +154,38 @@ cd mira
 npm install
 ```
 
-Create apps/mira-frontend/.env.local:
+#### Frontend Setup
+
+Create `apps/mira-frontend/.env.local` with your API keys and Supabase configuration:
 
 ```bash
 OPENAI_API_KEY=sk-xxxx
 SCRAPING_BEE_API_KEY=xxxx
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-Run the demo UI:
+Run database migrations:
+
+```bash
+npm run db:migrate
+```
+
+Generate TypeScript types from your Supabase schema:
+
+```bash
+npm run generate-types
+```
+
+Start the frontend application:
 
 ```bash
 npm run dev:mira-frontend
 ```
 
-### 2. Use as an npm package (core library)
+### 2. Use as an npm package (mira-ai library)
 
 ```bash
 npm install mira-ai
@@ -169,7 +202,6 @@ const config = {
 };
 
 const result = await researchCompany('https://company.com', config, {
-  companyCriteria: 'B2B SaaS companies with 50-200 employees',
   enrichmentConfig: {
     // Define custom data points to collect
     dataPoints: [
@@ -178,12 +210,16 @@ const result = await researchCompany('https://company.com', config, {
       { name: 'funding', description: 'Latest funding round and amount' },
       { name: 'recentNews', description: 'Recent company news or updates' },
     ],
-    // Configure which sources to use
+    // Configure which sources to use (landing page is always analyzed)
     sources: {
       crawl: true, // Enable internal pages crawling
       linkedin: true, // Enable LinkedIn analysis
       google: true, // Enable Google Search
-      analysis: true, // Enable executive summary generation
+    },
+    // Configure analysis options
+    analysis: {
+      executiveSummary: true, // Generate executive summary
+      companyCriteria: 'B2B SaaS companies with 50-200 employees', // Evaluate fit against criteria
     },
   },
   onProgress: (type, message) => {
@@ -195,25 +231,16 @@ console.log(result.enrichedCompany);
 console.log(result.companyAnalysis);
 ```
 
-### Production Security
+### Authentication
 
-The demo frontend includes Basic Auth protection for production deployments. Configure multiple users via environment variables:
-
-```bash
-# Basic Auth (Production Only)
-BASIC_AUTH_USERS=admin:secure_password,user:another_password
-NODE_ENV=production
-```
-
-- **Format**: `username1:password1,username2:password2`
-- **Scope**: Only active in production (`NODE_ENV=production`)
+The frontend application uses Supabase for user authentication and workspace management. Users can sign up and sign in through the Supabase Auth system, with each user having access to their own private workspaces.
 
 ## Additional Documentation
 
 This monorepo contains two main packages, each with its own README that provides a deeper look into architecture and usage:
 
-- **[Mira Core Library](./packages/mira-ai/README.md)** — Node.js/TypeScript library with agents, services, and orchestration logic.
-- **[Mira Frontend](./apps/mira-frontend/README.md)** — Next.js demo UI for running research and visualizing results.
+- **[Mira AI Library](./packages/mira-ai/README.md)** — Node.js/TypeScript library with agents, services, and orchestration logic.
+- **[Mira Frontend](./apps/mira-frontend/README.md)** — Next.js application with workspace management for running research and visualizing results.
 
 ## AI-Assisted Development
 
@@ -229,4 +256,4 @@ Distributed under the MIT License. See [LICENSE](./LICENSE) for details.
 
 ## Credits
 
-Logo and demo UI design by [salomeskv](https://www.salomeskv.com/about)
+Logo and UI design by [salomeskv](https://www.salomeskv.com/about)
