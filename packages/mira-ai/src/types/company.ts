@@ -109,10 +109,15 @@ export interface EnrichmentSources {
   crawl?: boolean;
   google?: boolean;
   linkedin?: boolean;
-  analysis?: boolean;
+}
+
+export interface Analysis {
+  executiveSummary?: boolean;
+  companyCriteria?: string;
 }
 
 export interface EnrichmentConfig {
   dataPoints: CustomDataPoint[];
   sources?: EnrichmentSources;
+  analysis?: Analysis;
 }

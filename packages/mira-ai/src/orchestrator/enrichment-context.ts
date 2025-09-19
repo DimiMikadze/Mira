@@ -1,7 +1,7 @@
 import { createProgressReporter, type ProgressCallback } from './progress-manager.js';
 import { createSourcesManager } from './sources-manager.js';
 import { MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/index.js';
-import type { EnrichmentConfig, CustomDataPoint } from '../types/company.js';
+import type { EnrichmentConfig, CustomDataPoint, Analysis } from '../types/company.js';
 
 /**
  * Configuration context for the enrichment process
@@ -15,11 +15,10 @@ export interface EnrichmentContext {
     crawl: boolean;
     google: boolean;
     linkedin: boolean;
-    analysis: boolean;
   };
+  analysisConfig?: Analysis;
   progressReporter: ReturnType<typeof createProgressReporter>;
   sourcesManager: ReturnType<typeof createSourcesManager>;
-  companyCriteria?: string;
 }
 
 /**
@@ -36,7 +35,6 @@ export interface MiraConfig {
  * Enrichment options
  */
 export interface MiraEnrichmentOptions {
-  companyCriteria?: string;
   onProgress?: ProgressCallback;
   enrichmentConfig?: EnrichmentConfig;
   minimumConfidenceThreshold?: number;
@@ -69,7 +67,6 @@ const createSourcesConfig = (enrichmentConfig?: EnrichmentConfig) => ({
   crawl: enrichmentConfig?.sources?.crawl ?? false,
   google: enrichmentConfig?.sources?.google ?? false,
   linkedin: enrichmentConfig?.sources?.linkedin ?? false,
-  analysis: enrichmentConfig?.sources?.analysis ?? false,
 });
 
 /**
@@ -84,17 +81,13 @@ export const initializeEnrichmentContext = (
   validateApiKeys(config);
   setupEnvironment(config);
 
-  const {
-    companyCriteria,
-    onProgress,
-    enrichmentConfig,
-    minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD,
-  } = options || {};
+  const { onProgress, enrichmentConfig, minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD } = options || {};
 
   const sourcesConfig = createSourcesConfig(enrichmentConfig);
   const progressReporter = createProgressReporter(onProgress, sourcesConfig);
   const sourcesManager = createSourcesManager();
   const dataPoints = enrichmentConfig?.dataPoints || [];
+  const analysisConfig = enrichmentConfig?.analysis;
 
   return {
     url,
@@ -102,8 +95,8 @@ export const initializeEnrichmentContext = (
     minimumConfidenceThreshold,
     dataPoints,
     sourcesConfig,
+    analysisConfig,
     progressReporter,
     sourcesManager,
-    companyCriteria,
   };
 };

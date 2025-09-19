@@ -218,14 +218,17 @@ export const executeCompanyAnalysisFlow = async (
   context: EnrichmentContext
 ): Promise<CompanyAnalysis | undefined> => {
   // Step 5: Company Analysis Agent
-  const hasCriteria = context.companyCriteria && context.companyCriteria.trim().length > 0;
-  const shouldRunAnalysis = hasCriteria || context.sourcesConfig.analysis;
+  const hasExecutiveSummary = context.analysisConfig?.executiveSummary;
+  const hasCompanyCriteria = Boolean(
+    context.analysisConfig?.companyCriteria && context.analysisConfig.companyCriteria.trim().length > 0
+  );
+  const shouldRunAnalysis = hasExecutiveSummary || hasCompanyCriteria;
 
   if (shouldRunAnalysis) {
-    context.progressReporter.reportCompanyAnalysisStarted(hasCriteria as boolean);
+    context.progressReporter.reportCompanyAnalysisStarted(hasCompanyCriteria);
     const enrichedCompany = { ...baseDataPoints };
     const companyAnalysis = await runCompanyAnalysisStep({
-      companyCriteria: context.companyCriteria,
+      companyCriteria: context.analysisConfig?.companyCriteria,
       enrichedCompany,
     });
     if (companyAnalysis) {
