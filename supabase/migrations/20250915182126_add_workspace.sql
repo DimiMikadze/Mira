@@ -16,6 +16,11 @@ create table public."Workspace" (
   analysis_executive_summary boolean not null default false,
   analysis_company_criteria text,
 
+  -- Outreach configuration
+  outreach_linkedin boolean not null default false,
+  outreach_email boolean not null default false,
+  outreach_prompt text,
+
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

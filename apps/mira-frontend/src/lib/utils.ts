@@ -68,3 +68,14 @@ export function workspaceToAnalysis(workspace: WorkspaceRow): Analysis {
     companyCriteria: workspace.analysis_company_criteria || undefined,
   };
 }
+
+/**
+ * Converts WorkspaceRow database fields to Outreach object format
+ */
+export function workspaceToOutreach(workspace: WorkspaceRow) {
+  return {
+    linkedin: workspace.outreach_linkedin,
+    email: workspace.outreach_email,
+    prompt: workspace.outreach_prompt || undefined,
+  };
+}

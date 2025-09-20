@@ -2,6 +2,12 @@ import { NextRequest } from 'next/server';
 import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getAuthUser } from '@/lib/supabase/orm';
+import {
+  generateOutreach,
+  type OutreachConfig,
+  type EnrichmentResult as OutreachEnrichmentResult,
+} from '@/lib/outreach';
+import { OUTREACH_EVENTS } from '@/constants/outreach';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -21,7 +27,7 @@ export async function POST(request: NextRequest) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    const { url, sources, analysis, dataPoints } = await request.json();
+    const { url, sources, analysis, dataPoints, outreach } = await request.json();
 
     if (!url) {
       return new Response('URL is required', { status: 400 });
@@ -94,8 +100,34 @@ export async function POST(request: NextRequest) {
             enrichmentConfig,
           });
 
-          // Send final result - message will come from orchestrator
-          sendEvent(PROGRESS_EVENTS.ENRICHMENT_COMPLETED, undefined, result);
+          // Generate outreach if configured
+          let outreachResult = null;
+          if (outreach && (outreach.linkedin || outreach.email) && outreach.prompt) {
+            try {
+              sendEvent(OUTREACH_EVENTS.OUTREACH_STARTED, 'Generating personalized outreach messages...');
+
+              const outreachConfig: OutreachConfig = {
+                linkedin: outreach.linkedin || false,
+                email: outreach.email || false,
+                prompt: outreach.prompt,
+              };
+
+              outreachResult = await generateOutreach(result as OutreachEnrichmentResult, outreachConfig);
+
+              sendEvent(OUTREACH_EVENTS.OUTREACH_COMPLETED, 'Outreach messages generated successfully');
+            } catch (error) {
+              console.error('Error generating outreach:', error);
+              sendEvent(OUTREACH_EVENTS.OUTREACH_ERROR, 'Failed to generate outreach messages');
+            }
+          }
+
+          // Send final result with outreach data
+          const finalResult = {
+            ...result,
+            outreach: outreachResult,
+          };
+
+          sendEvent(PROGRESS_EVENTS.ENRICHMENT_COMPLETED, undefined, finalResult);
 
           controller.close();
         } catch (error) {

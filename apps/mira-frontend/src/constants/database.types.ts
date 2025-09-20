@@ -22,6 +22,9 @@ export type Database = {
           datapoints: Json
           id: string
           name: string
+          outreach_email: boolean
+          outreach_linkedin: boolean
+          outreach_prompt: string | null
           source_crawl: boolean
           source_google: boolean
           source_linkedin: boolean
@@ -35,6 +38,9 @@ export type Database = {
           datapoints?: Json
           id?: string
           name: string
+          outreach_email?: boolean
+          outreach_linkedin?: boolean
+          outreach_prompt?: string | null
           source_crawl?: boolean
           source_google?: boolean
           source_linkedin?: boolean
@@ -48,6 +54,9 @@ export type Database = {
           datapoints?: Json
           id?: string
           name?: string
+          outreach_email?: boolean
+          outreach_linkedin?: boolean
+          outreach_prompt?: string | null
           source_crawl?: boolean
           source_google?: boolean
           source_linkedin?: boolean

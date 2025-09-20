@@ -43,6 +43,14 @@ function mapWorkspaceToFormAnalysis(workspace?: WorkspaceRow): WorkspaceFormValu
   };
 }
 
+function mapWorkspaceToFormOutreach(workspace?: WorkspaceRow): WorkspaceFormValues['outreach'] {
+  return {
+    linkedin: workspace?.outreach_linkedin ?? false,
+    email: workspace?.outreach_email ?? false,
+    prompt: workspace?.outreach_prompt ?? '',
+  };
+}
+
 // Reusable section component
 const WorkspaceSection = ({
   title,
@@ -74,11 +82,13 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
     const inferredSources = mapWorkspaceToFormSources(workspace);
     const inferredAnalysis = mapWorkspaceToFormAnalysis(workspace);
+    const inferredOutreach = mapWorkspaceToFormOutreach(workspace);
 
     return {
       name: workspace?.name || '',
       sources: inferredSources,
       analysis: inferredAnalysis,
+      outreach: inferredOutreach,
       dataPoints: inferredDataPoints.length > 0 ? inferredDataPoints : [{ name: '', description: '' }],
     };
   }, [workspace]);
@@ -112,6 +122,10 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
       // Analysis fields
       analysis_executive_summary: values.analysis.executiveSummary ?? false,
       analysis_company_criteria: values.analysis.companyCriteria?.trim() || null,
+      // Outreach fields
+      outreach_linkedin: values.outreach.linkedin ?? false,
+      outreach_email: values.outreach.email ?? false,
+      outreach_prompt: values.outreach.prompt?.trim() || null,
       datapoints: values.dataPoints.map((d) => ({
         name: d.name.trim(),
         description: d.description.trim(),
@@ -316,6 +330,76 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                           <FormControl>
                             <AutosizeTextarea
                               placeholder='e.g., B2B SaaS, 11–200 employees, recent funding, US/EU market…'
+                              {...field}
+                              className='min-h-[80px]'
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            </WorkspaceSection>
+
+            {/* Outreach */}
+            <WorkspaceSection
+              title='Outreach (optional)'
+              description='Draft personalized outreach messages using AI after company research is complete.'
+            >
+              <div className='grid gap-4'>
+                <FormField
+                  control={control}
+                  name='outreach.linkedin'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
+                      <div>
+                        <FormLabel className='text-base'>LinkedIn Outreach</FormLabel>
+                        <FormDescription>
+                          Draft personalized LinkedIn connection requests and messages based on research data.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name='outreach.email'
+                  render={({ field }) => (
+                    <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
+                      <div>
+                        <FormLabel className='text-base'>Email Outreach</FormLabel>
+                        <FormDescription>
+                          Draft personalized email templates based on the company research findings.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch checked={!!field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className='rounded-2xl border bg-white'>
+                  <div className='p-4'>
+                    <FormField
+                      control={control}
+                      name='outreach.prompt'
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className='text-base'>Outreach Context & Instructions</FormLabel>
+                          <FormDescription className='mb-4'>
+                            Provide context about your outreach goals, your company, and any specific instructions for
+                            the AI to draft personalized messages.
+                          </FormDescription>
+                          <FormControl>
+                            <AutosizeTextarea
+                              placeholder='e.g., I work at TechCorp, a B2B SaaS platform. I want to reach out to potential customers about our new product launch. Focus on how our solution can solve their specific industry challenges...'
                               {...field}
                               className='min-h-[80px]'
                             />
