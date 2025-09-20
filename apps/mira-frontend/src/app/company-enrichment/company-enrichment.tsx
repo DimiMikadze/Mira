@@ -10,11 +10,14 @@ import CompanySources from './company-sources';
 import CompanySearchInput from './company-search-input';
 import CompanySearchInfo from './company-search-info';
 import { PROGRESS_EVENTS, type ProgressEventType } from 'mira-ai/types';
+import { OUTREACH_EVENTS } from '@/constants/outreach';
 
 import type { CompanyAnalysis as CompanyAnalysisType } from 'mira-ai/types';
 import { CircleAlert } from 'lucide-react';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { API_ENDPOINTS, workspaceToEnrichmentSources, workspaceToAnalysis } from '@/lib/utils';
+import { API_ENDPOINTS, workspaceToEnrichmentSources, workspaceToAnalysis, workspaceToOutreach } from '@/lib/utils';
+import { type OutreachResult } from '@/lib/outreach';
+import CompanyOutreach from './company-outreach';
 import { WorkspaceRow } from '@/lib/supabase/orm';
 import { User } from '@supabase/supabase-js';
 
@@ -39,6 +42,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
   const [sources, setSources] = useState<string[]>([]);
   const [enrichedCompany, setEnrichedCompany] = useState<EnrichedCompany | null>(null);
   const [companyAnalysis, setCompanyAnalysis] = useState<CompanyAnalysisType | null>(null);
+  const [outreachResult, setOutreachResult] = useState<OutreachResult | null>(null);
 
   const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceRow | null>(null);
 
@@ -57,6 +61,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
     setExecutionTime('');
     setEnrichedCompany(null);
     setCompanyAnalysis(null);
+    setOutreachResult(null);
     setIsLoading(true);
     setSources([]);
 
@@ -68,6 +73,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
           url,
           sources: workspaceToEnrichmentSources(currentWorkspace),
           analysis: workspaceToAnalysis(currentWorkspace),
+          outreach: workspaceToOutreach(currentWorkspace),
           dataPoints: currentWorkspace.datapoints,
         }),
         headers: {
@@ -108,8 +114,13 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
                   }
                 }
 
-                // Track progress stage
-                if (event.type && Object.values(PROGRESS_EVENTS).includes(event.type)) {
+                // Track progress stage (including outreach events)
+                const isProgressEvent = Object.values(PROGRESS_EVENTS).includes(event.type);
+                const isOutreachEvent =
+                  event.type === OUTREACH_EVENTS.OUTREACH_STARTED ||
+                  event.type === OUTREACH_EVENTS.OUTREACH_COMPLETED ||
+                  event.type === OUTREACH_EVENTS.OUTREACH_ERROR;
+                if (event.type && (isProgressEvent || isOutreachEvent)) {
                   setCurrentEventType(event.type as ProgressEventType);
                 }
 
@@ -117,6 +128,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
                   // Final result received
                   setEnrichedCompany(event.data.enrichedCompany);
                   setCompanyAnalysis(event.data.companyAnalysis || null);
+                  setOutreachResult(event.data.outreach || null);
                   setExecutionTime(event.data.executionTime);
                   setSources(event.data.sources);
                   setIsLoading(false);
@@ -181,6 +193,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
             stepMessages={stepMessages}
             sources={workspaceToEnrichmentSources(currentWorkspace)}
             analysis={workspaceToAnalysis(currentWorkspace)}
+            outreach={workspaceToOutreach(currentWorkspace)}
           />
         )}
 
@@ -194,6 +207,9 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
 
             {/* Company Data Points */}
             {enrichedCompany && <CompanyDataPoints enrichedCompany={enrichedCompany} />}
+
+            {/* Outreach Results */}
+            {outreachResult && <CompanyOutreach outreach={outreachResult} />}
           </div>
         )}
       </div>

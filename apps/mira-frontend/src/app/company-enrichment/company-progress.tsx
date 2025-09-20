@@ -4,6 +4,7 @@ import React from 'react';
 import { PROGRESS_EVENTS, type ProgressEventType, type EnrichmentSources } from 'mira-ai/types';
 import { Check, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OUTREACH_EVENTS } from '@/constants/outreach';
 
 interface CompanyProgressProps {
   /** Current progress message to display */
@@ -19,6 +20,12 @@ interface CompanyProgressProps {
     executiveSummary?: boolean;
     companyCriteria?: string;
   };
+  /** Outreach configuration to determine if outreach should run */
+  outreach?: {
+    linkedin?: boolean;
+    email?: boolean;
+    prompt?: string;
+  };
 }
 
 /**
@@ -30,6 +37,7 @@ const ALL_STEPS = [
   { event: PROGRESS_EVENTS.LINKEDIN_STARTED, sourceKey: 'linkedin' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED, sourceKey: 'google' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, isAnalysis: true }, // Conditional based on analysis configuration
+  { event: OUTREACH_EVENTS.OUTREACH_STARTED as ProgressEventType, isOutreach: true }, // Conditional based on outreach configuration
 ] as const;
 
 /**
@@ -37,7 +45,8 @@ const ALL_STEPS = [
  */
 const buildStepOrder = (
   sources?: EnrichmentSources,
-  analysis?: { executiveSummary?: boolean; companyCriteria?: string }
+  analysis?: { executiveSummary?: boolean; companyCriteria?: string },
+  outreach?: { linkedin?: boolean; email?: boolean; prompt?: string }
 ) => {
   const steps = ALL_STEPS.filter((step) => {
     // Always include required steps
@@ -57,6 +66,13 @@ const buildStepOrder = (
       return hasExecutiveSummary || hasCompanyCriteria;
     }
 
+    // For outreach step, check if outreach is configured
+    if ('isOutreach' in step && step.isOutreach) {
+      const hasOutreach = outreach?.linkedin || outreach?.email;
+      const hasPrompt = outreach?.prompt && outreach.prompt.trim().length > 0;
+      return hasOutreach && hasPrompt;
+    }
+
     return false;
   });
 
@@ -70,13 +86,14 @@ type StepEventType = ProgressEventType;
  * Human-readable labels for each step to display in the UI
  * Maps internal event names to user-friendly descriptions
  */
-const STEP_LABELS = {
+const STEP_LABELS: Record<string, string> = {
   [PROGRESS_EVENTS.DISCOVERY_STARTED]: 'Extracting Website Data',
   [PROGRESS_EVENTS.INTERNAL_PAGES_STARTED]: 'Extracting Internal Page Data',
   [PROGRESS_EVENTS.LINKEDIN_STARTED]: 'Analyzing LinkedIn Profile',
   [PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED]: 'Searching Google',
   [PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED]: 'Analyzing Results',
-} as const;
+  [OUTREACH_EVENTS.OUTREACH_STARTED]: 'Generating Outreach Messages',
+};
 
 /**
  * Type guard function to check if a given event type is one of our defined step events
@@ -106,9 +123,10 @@ const CompanyProgress = ({
   stepMessages = {},
   sources,
   analysis,
+  outreach,
 }: CompanyProgressProps) => {
-  // Build dynamic step order based on enabled sources and analysis configuration
-  const stepOrder = buildStepOrder(sources, analysis);
+  // Build dynamic step order based on enabled sources, analysis, and outreach configuration
+  const stepOrder = buildStepOrder(sources, analysis, outreach);
 
   /**
    * Calculate the current step index based on the event type
