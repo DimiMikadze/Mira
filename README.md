@@ -43,6 +43,7 @@ To show how it works in practice, this repository includes a complete Next.js fr
 - **Multi-Agent Architecture** – Specialized agents handle discovery, internal pages, LinkedIn, Google Search, and analysis, with intelligent orchestration.
 - **Confidence Scoring & Source Attribution** – Each fact includes a confidence score (1-5) and references its source for transparency and trust.
 - **Company Analysis & Criteria Matching** – Generate executive summaries and evaluate companies against custom criteria with fit scores (0-10) and detailed reasoning.
+- **Personalized Outreach Generation** – AI-powered LinkedIn and email outreach message creation based on enriched company data with customizable prompts.
 - **Realtime Progress Events** – Emits structured events during execution so you can track and display live progress.
 - **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and cookie consent banners.
 - **Composable Core Library** – Framework-agnostic and publishable as an npm package, ready for Node.js/TypeScript projects.

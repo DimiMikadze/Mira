@@ -4,7 +4,6 @@ import React from 'react';
 import { PROGRESS_EVENTS, type ProgressEventType, type EnrichmentSources } from 'mira-ai/types';
 import { Check, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { OUTREACH_EVENTS } from '@/constants/outreach';
 
 interface CompanyProgressProps {
   /** Current progress message to display */
@@ -37,7 +36,7 @@ const ALL_STEPS = [
   { event: PROGRESS_EVENTS.LINKEDIN_STARTED, sourceKey: 'linkedin' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED, sourceKey: 'google' as keyof EnrichmentSources },
   { event: PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED, isAnalysis: true }, // Conditional based on analysis configuration
-  { event: OUTREACH_EVENTS.OUTREACH_STARTED as ProgressEventType, isOutreach: true }, // Conditional based on outreach configuration
+  { event: PROGRESS_EVENTS.OUTREACH_STARTED, isOutreach: true }, // Conditional based on outreach configuration
 ] as const;
 
 /**
@@ -92,7 +91,7 @@ const STEP_LABELS: Record<string, string> = {
   [PROGRESS_EVENTS.LINKEDIN_STARTED]: 'Analyzing LinkedIn Profile',
   [PROGRESS_EVENTS.GOOGLE_SEARCH_STARTED]: 'Searching Google',
   [PROGRESS_EVENTS.COMPANY_ANALYSIS_STARTED]: 'Analyzing Results',
-  [OUTREACH_EVENTS.OUTREACH_STARTED]: 'Generating Outreach Messages',
+  [PROGRESS_EVENTS.OUTREACH_STARTED]: 'Generating Outreach Messages',
 };
 
 /**
