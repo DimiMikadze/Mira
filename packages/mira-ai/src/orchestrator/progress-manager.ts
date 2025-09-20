@@ -153,6 +153,28 @@ export const createProgressReporter = (onProgress?: ProgressCallback, sources?: 
   },
 
   /**
+   * Report outreach generation started
+   */
+  reportOutreachStarted: () => {
+    onProgress?.(PROGRESS_EVENTS.OUTREACH_STARTED, 'Generating personalized outreach messages...');
+  },
+
+  /**
+   * Report outreach generation completed
+   */
+  reportOutreachCompleted: () => {
+    onProgress?.(PROGRESS_EVENTS.OUTREACH_COMPLETED, 'Outreach messages generated successfully');
+  },
+
+  /**
+   * Report outreach generation error
+   */
+  reportOutreachError: (error?: string) => {
+    const message = error || 'Failed to generate outreach messages';
+    onProgress?.(PROGRESS_EVENTS.OUTREACH_ERROR, message);
+  },
+
+  /**
    * Report final enrichment completion
    */
   reportEnrichmentCompleted: (dataPointsFound: number, totalSources: number, socialLinksFound: number) => {

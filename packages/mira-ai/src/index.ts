@@ -1,6 +1,9 @@
 // Main orchestrator function - SERVER ONLY
 export { researchCompany } from './orchestrator/index.js';
 
+// Outreach service - SERVER ONLY
+export { generateOutreach } from './services/outreach.js';
+
 // Export server-specific types (those needed when calling researchCompany)
 export type {
   EnrichmentResult,

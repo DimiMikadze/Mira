@@ -10,13 +10,12 @@ import CompanySources from './company-sources';
 import CompanySearchInput from './company-search-input';
 import CompanySearchInfo from './company-search-info';
 import { PROGRESS_EVENTS, type ProgressEventType } from 'mira-ai/types';
-import { OUTREACH_EVENTS } from '@/constants/outreach';
 
 import type { CompanyAnalysis as CompanyAnalysisType } from 'mira-ai/types';
 import { CircleAlert } from 'lucide-react';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { API_ENDPOINTS, workspaceToEnrichmentSources, workspaceToAnalysis, workspaceToOutreach } from '@/lib/utils';
-import { type OutreachResult } from '@/lib/outreach';
+import { type OutreachResult } from 'mira-ai';
 import CompanyOutreach from './company-outreach';
 import { WorkspaceRow } from '@/lib/supabase/orm';
 import { User } from '@supabase/supabase-js';
@@ -116,11 +115,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
 
                 // Track progress stage (including outreach events)
                 const isProgressEvent = Object.values(PROGRESS_EVENTS).includes(event.type);
-                const isOutreachEvent =
-                  event.type === OUTREACH_EVENTS.OUTREACH_STARTED ||
-                  event.type === OUTREACH_EVENTS.OUTREACH_COMPLETED ||
-                  event.type === OUTREACH_EVENTS.OUTREACH_ERROR;
-                if (event.type && (isProgressEvent || isOutreachEvent)) {
+                if (event.type && isProgressEvent) {
                   setCurrentEventType(event.type as ProgressEventType);
                 }
 

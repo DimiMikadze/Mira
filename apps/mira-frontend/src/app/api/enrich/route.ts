@@ -1,13 +1,7 @@
 import { NextRequest } from 'next/server';
-import { researchCompany, PROGRESS_EVENTS } from 'mira-ai';
+import { researchCompany, generateOutreach, PROGRESS_EVENTS, type OutreachConfig } from 'mira-ai';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getAuthUser } from '@/lib/supabase/orm';
-import {
-  generateOutreach,
-  type OutreachConfig,
-  type EnrichmentResult as OutreachEnrichmentResult,
-} from '@/lib/outreach';
-import { OUTREACH_EVENTS } from '@/constants/outreach';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -104,20 +98,20 @@ export async function POST(request: NextRequest) {
           let outreachResult = null;
           if (outreach && (outreach.linkedin || outreach.email) && outreach.prompt) {
             try {
-              sendEvent(OUTREACH_EVENTS.OUTREACH_STARTED, 'Generating personalized outreach messages...');
-
               const outreachConfig: OutreachConfig = {
                 linkedin: outreach.linkedin || false,
                 email: outreach.email || false,
                 prompt: outreach.prompt,
               };
 
-              outreachResult = await generateOutreach(result as OutreachEnrichmentResult, outreachConfig);
-
-              sendEvent(OUTREACH_EVENTS.OUTREACH_COMPLETED, 'Outreach messages generated successfully');
+              outreachResult = await generateOutreach(
+                result.enrichedCompany,
+                outreachConfig,
+                (type: string, message?: string) => sendEvent(type, message)
+              );
             } catch (error) {
               console.error('Error generating outreach:', error);
-              sendEvent(OUTREACH_EVENTS.OUTREACH_ERROR, 'Failed to generate outreach messages');
+              sendEvent(PROGRESS_EVENTS.OUTREACH_ERROR, 'Failed to generate outreach messages');
             }
           }
 

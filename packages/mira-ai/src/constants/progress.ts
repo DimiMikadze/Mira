@@ -8,6 +8,9 @@ export const PROGRESS_EVENTS = {
   LINKEDIN_STARTED: 'linkedin_started',
   GOOGLE_SEARCH_STARTED: 'google_search_started',
   COMPANY_ANALYSIS_STARTED: 'company_analysis_started',
+  OUTREACH_STARTED: 'outreach_started',
+  OUTREACH_COMPLETED: 'outreach_completed',
+  OUTREACH_ERROR: 'outreach_error',
   ENRICHMENT_COMPLETED: 'enrichment_completed',
   ERROR: 'error',
 } as const;

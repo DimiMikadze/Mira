@@ -24,6 +24,7 @@ Mira AI is an agentic AI library that automates company research with configurab
 - **Confidence-Based Merging** – Higher confidence scores take precedence when merging data
 - **Real-time Progress Events** – Live updates throughout the research process
 - **Company Analysis** – Optional executive summary generation and company criteria fit scoring
+- **Outreach Generation** – AI-powered personalized LinkedIn and email outreach based on enriched company data
 
 ### Entry Points
 
@@ -84,6 +85,29 @@ const result = await researchCompany('https://company.com', config, {
 console.log(result.enrichedCompany);
 console.log(result.companyAnalysis);
 ```
+
+### Outreach Generation
+
+Generate personalized LinkedIn and email outreach messages based on enriched company data:
+
+```typescript
+import { generateOutreach } from 'mira-ai';
+
+const outreachResult = await generateOutreach(
+  enrichedCompany, // EnrichedCompany from research result
+  {
+    linkedin: true, // Generate LinkedIn messages
+    email: true, // Generate email messages
+    prompt: 'Focus on our AI automation solutions for enterprise clients',
+  },
+  (type, message) => console.log(`${type}: ${message}`) // Optional progress callback
+);
+```
+
+The outreach function returns structured messages:
+
+- **LinkedIn**: connection note, acceptance message, InMail subject/message
+- **Email**: subject, initial message, follow-up message
 
 ## Testing
 

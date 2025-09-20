@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Copy, Check, Mail } from 'lucide-react';
-import { type OutreachResult } from '@/lib/outreach';
+import { type OutreachResult } from 'mira-ai';
 
 interface CompanyOutreachProps {
   outreach: OutreachResult;
