@@ -157,11 +157,24 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
     }
   };
 
+  // Handles bulk processing of companies from CSV file
+  const handleBulkProcess = async (file: File) => {
+    if (!currentWorkspace) {
+      setApiErrorMessage('Please select a workspace first');
+      return;
+    }
+
+    // TODO: Implement bulk processing logic
+    console.log('Starting bulk processing for file:', file.name);
+    // For now, just log the file - bulk processing implementation will come later
+  };
+
   return (
     <div>
       {/* Company Search Input */}
       <CompanySearchInput
         onSubmit={sendEnrichRequest}
+        onBulkProcess={handleBulkProcess}
         isLoading={isLoading}
         workspaces={workspaces}
         currentWorkspace={currentWorkspace}
