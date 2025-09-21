@@ -3,11 +3,17 @@
 import React, { useState, useRef } from 'react';
 import { CloudUpload, FileText, X, RotateCcw, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Papa from 'papaparse';
+import CompanyFieldMappingDialog from './company-field-mapping-dialog';
+
+interface FieldMapping {
+  domain: string | null;
+  companyLinkedInURL: string | null;
+}
 
 interface CompanyBulkEnrichmentProps {
-  onFileUpload: (file: File) => void;
+  onFileUpload: (file: File, mapping: FieldMapping) => void;
   onFileRemove: () => void;
-  onFileReplace: (file: File) => void;
   onProcessStart: () => void;
   uploadedFile: File | null;
   isProcessing: boolean;
@@ -22,16 +28,17 @@ interface CompanyBulkEnrichmentProps {
 const CompanyBulkEnrichment = ({
   onFileUpload,
   onFileRemove,
-  onFileReplace,
   onProcessStart,
   uploadedFile,
   isProcessing,
 }: CompanyBulkEnrichmentProps) => {
   const [fileError, setFileError] = useState('');
-  const [rowCount, setRowCount] = useState<number | null>(null);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [showMappingDialog, setShowMappingDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Validate CSV file and count rows
+  // Validate CSV file and extract headers
   const validateAndProcessFile = async (file: File) => {
     setFileError('');
 
@@ -47,35 +54,60 @@ const CompanyBulkEnrichment = ({
       return false;
     }
 
-    try {
-      // Read file to count rows
-      const text = await file.text();
-      const lines = text.split('\n').filter((line) => line.trim() !== '');
-      const rows = Math.max(0, lines.length - 1); // Subtract header row
+    return new Promise<boolean>((resolve) => {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        preview: 5, // Only parse first 5 rows to get headers
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            setFileError('Invalid CSV format');
+            resolve(false);
+            return;
+          }
 
-      if (rows === 0) {
-        setFileError('CSV file appears to be empty');
-        return false;
-      }
+          const headers = results.meta.fields || [];
+          if (headers.length === 0) {
+            setFileError('CSV file has no headers');
+            resolve(false);
+            return;
+          }
 
-      if (rows > 1000) {
-        setFileError('Maximum 1000 companies allowed per batch');
-        return false;
-      }
+          // Count total rows by parsing the entire file
+          Papa.parse(file, {
+            skipEmptyLines: true,
+            complete: (fullResults) => {
+              const totalRows = Math.max(0, fullResults.data.length - 1); // Subtract header row
 
-      setRowCount(rows);
-      return true;
-    } catch {
-      setFileError('Failed to read CSV file');
-      return false;
-    }
+              if (totalRows === 0) {
+                setFileError('CSV file appears to be empty');
+                resolve(false);
+                return;
+              }
+
+              setCsvHeaders(headers);
+              resolve(true);
+            },
+            error: () => {
+              setFileError('Failed to read CSV file');
+              resolve(false);
+            },
+          });
+        },
+        error: () => {
+          setFileError('Failed to parse CSV file');
+          resolve(false);
+        },
+      });
+    });
   };
 
-  // Handle file selection from input or drag
+  // Handle file selection from input
   const handleFileSelect = async (file: File) => {
     const isValid = await validateAndProcessFile(file);
     if (isValid) {
-      onFileUpload(file);
+      setPendingFile(file);
+      setShowMappingDialog(true);
     }
   };
 
@@ -92,17 +124,36 @@ const CompanyBulkEnrichment = ({
     fileInputRef.current?.click();
   };
 
+  // Handle field mapping confirmation
+  const handleMappingConfirm = (mapping: FieldMapping) => {
+    if (pendingFile) {
+      onFileUpload(pendingFile, mapping);
+      setPendingFile(null);
+      setCsvHeaders([]);
+    }
+  };
+
+  // Handle mapping dialog cancel
+  const handleMappingCancel = () => {
+    setPendingFile(null);
+    setCsvHeaders([]);
+    setFileError('');
+    setShowMappingDialog(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   // Handle file replace
   const handleReplace = () => {
-    setRowCount(null);
     setFileError('');
     fileInputRef.current?.click();
   };
 
   // Handle file remove
   const handleRemove = () => {
-    setRowCount(null);
     setFileError('');
+    setCsvHeaders([]);
     onFileRemove();
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -113,10 +164,10 @@ const CompanyBulkEnrichment = ({
   const handleReplaceFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const isValid = await validateAndProcessFile(file);
-      if (isValid) {
-        onFileReplace(file);
-      }
+      // First remove the current file
+      handleRemove();
+      // Then handle the new file selection
+      await handleFileSelect(file);
     }
   };
 
@@ -127,7 +178,6 @@ const CompanyBulkEnrichment = ({
         <div className='flex items-center gap-2 bg-gray-50 border border-gray-300 rounded-full px-4 py-3 h-14'>
           <FileText className='h-5 w-5 text-gray-600' />
           <span className='text-sm font-medium text-gray-900'>{uploadedFile.name}</span>
-          <span className='text-sm text-gray-600'>({rowCount} rows)</span>
         </div>
 
         <div className='flex items-center gap-2'>
@@ -189,8 +239,21 @@ const CompanyBulkEnrichment = ({
       <input ref={fileInputRef} type='file' accept='.csv' onChange={handleFileInputChange} className='hidden' />
 
       {fileError && (
-        <div className='absolute top-full left-0 right-0 mt-1 text-xs text-red-600 whitespace-nowrap'>asfas</div>
+        <div className='absolute top-full left-0 right-0 mt-1 text-xs text-red-600 whitespace-nowrap'>{fileError}</div>
       )}
+
+      {/* Field Mapping Dialog */}
+      <CompanyFieldMappingDialog
+        open={showMappingDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleMappingCancel();
+          }
+        }}
+        csvHeaders={csvHeaders}
+        onMappingConfirm={handleMappingConfirm}
+        fileName={pendingFile?.name || ''}
+      />
     </div>
   );
 };

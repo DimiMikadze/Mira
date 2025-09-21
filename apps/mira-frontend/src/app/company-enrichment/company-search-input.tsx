@@ -17,9 +17,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { createSupabaseClient } from '@/lib/supabase/client';
 
+interface FieldMapping {
+  domain: string | null;
+  companyLinkedInURL: string | null;
+}
+
 interface CompanySearchInputProps {
   onSubmit: (url: string) => void;
-  onBulkProcess: (file: File) => void;
+  onBulkProcess: (file: File, mapping: FieldMapping) => void;
   isLoading: boolean;
   workspaces: WorkspaceRow[];
   currentWorkspace: WorkspaceRow | null;
@@ -47,6 +52,7 @@ const CompanySearchInput = ({
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<WorkspaceRow | undefined>(undefined);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fieldMapping, setFieldMapping] = useState<FieldMapping | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
@@ -122,24 +128,22 @@ const CompanySearchInput = ({
   };
 
   // Bulk enrichment handlers
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = (file: File, mapping: FieldMapping) => {
     setUploadedFile(file);
+    setFieldMapping(mapping);
   };
 
   const handleFileRemove = () => {
     setUploadedFile(null);
+    setFieldMapping(null);
     setIsProcessing(false);
   };
 
-  const handleFileReplace = (file: File) => {
-    setUploadedFile(file);
-  };
-
   const handleProcessStart = () => {
-    if (!uploadedFile || !currentWorkspace) return;
+    if (!uploadedFile || !currentWorkspace || !fieldMapping) return;
 
     setIsProcessing(true);
-    onBulkProcess(uploadedFile);
+    onBulkProcess(uploadedFile, fieldMapping);
   };
 
   return (
@@ -190,7 +194,6 @@ const CompanySearchInput = ({
             <CompanyBulkEnrichment
               onFileUpload={handleFileUpload}
               onFileRemove={handleFileRemove}
-              onFileReplace={handleFileReplace}
               onProcessStart={handleProcessStart}
               uploadedFile={uploadedFile}
               isProcessing={isProcessing || isLoading}

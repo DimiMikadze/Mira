@@ -158,7 +158,10 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
   };
 
   // Handles bulk processing of companies from CSV file
-  const handleBulkProcess = async (file: File) => {
+  const handleBulkProcess = async (
+    file: File,
+    mapping: { domain: string | null; companyLinkedInURL: string | null }
+  ) => {
     if (!currentWorkspace) {
       setApiErrorMessage('Please select a workspace first');
       return;
@@ -166,7 +169,8 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
 
     // TODO: Implement bulk processing logic
     console.log('Starting bulk processing for file:', file.name);
-    // For now, just log the file - bulk processing implementation will come later
+    console.log('Field mapping:', mapping);
+    // For now, just log the file and mapping - bulk processing implementation will come later
   };
 
   return (
