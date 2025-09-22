@@ -394,7 +394,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
           </Alert>
         )}
         {/* Welcome content - only show when not loading, no enriched data, and no CSV results */}
-        {!isShowingProgress && !enrichedCompany && !csvResults && <CompanySearchInfo workspaces={workspaces} />}
+        {!isShowingProgress && !enrichedCompany && !csvResults && <CompanySearchInfo />}
 
         {/* Progress components - conditional based on enrichment mode */}
         {isShowingProgress && currentWorkspace && (

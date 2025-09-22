@@ -18,7 +18,7 @@ const Header = () => {
     <div className='w-full h-14 border-b flex justify-between items-center fixed top-0 left-0 px-4 z-50 bg-gray-100'>
       <div className='flex items-center'>
         <Link href={Routes.HOME}>
-          <img src='/logo.svg' alt='Mira Logo' className='hidden sm:block h-5 w-auto flex-shrink-0' />
+          <img src='/logo.svg' alt='Mira Logo' className='h-5 w-auto flex-shrink-0' />
         </Link>
       </div>
 

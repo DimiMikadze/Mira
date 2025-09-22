@@ -158,7 +158,15 @@ const CompanySearchInput = ({
                 variant='outline'
                 className='h-14 rounded-full gap-2 pl-3 pr-2 max-w-full sm:max-w-[240px] truncate border-gray-300 hover:border-gray-400 focus:border-black focus:border-2 transition-colors'
               >
-                <span className='truncate'>{currentWorkspace ? currentWorkspace.name : 'Select workspace'}</span>
+                <span className='truncate'>
+                  {currentWorkspace ? (
+                    <>
+                      <span className='text-xs'>Workspace:</span> {currentWorkspace.name}
+                    </>
+                  ) : (
+                    'Select workspace'
+                  )}
+                </span>
                 <ChevronDown className='h-4 w-4 opacity-70' />
               </Button>
             </DropdownMenuTrigger>
@@ -190,7 +198,7 @@ const CompanySearchInput = ({
           </DropdownMenu>
 
           {/** Bulk Enrichment Component */}
-          <div className='flex-shrink-0 w-full sm:w-auto'>
+          <div className='flex-shrink-0 w-full sm:w-auto hidden sm:block'>
             <CompanyBulkEnrichment
               onFileUpload={handleFileUpload}
               onFileRemove={handleFileRemove}

@@ -1,52 +1,45 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, MessageSquare, Target } from 'lucide-react';
-import { WorkspaceRow } from '@/lib/supabase/orm';
+import { BarChart3, Mail, SearchCheck, Target } from 'lucide-react';
 
 /**
  * Company Search Info Component
  *
  * Displays welcome content explaining the enrichment process
  */
-interface CompanySearchInfoProps {
-  workspaces: WorkspaceRow[];
-}
-
-const CompanySearchInfo = ({ workspaces }: CompanySearchInfoProps) => {
-  const hasWorkspaces = workspaces.length > 0;
-
+const CompanySearchInfo = () => {
   return (
-    <div className='mt-8 mb-8 mx-auto'>
-      <div className='text-center mb-8'>
-        <p className='text-lg text-gray-700'>
-          {hasWorkspaces
-            ? 'Select a workspace and enter a company website to begin.'
-            : 'Create a workspace and enter a company website to begin'}
-        </p>
-      </div>
+    <div className='mt-8 mb-20 mx-auto'>
+      <div className='grid grid-cols-1 md:grid-cols-4 gap-6 mt-18'>
+        <div className='text-center'>
+          <div className='w-12 h-12 mx-auto mb-4 bg-blue-50 rounded-xl flex items-center justify-center'>
+            <BarChart3 className='w-6 h-6 text-blue-500' />
+          </div>
+          <h3 className='text-md font-semibold'>1. Research Company</h3>
+          <p className='text-sm text-gray-600 mt-2'>Gather structured company information.</p>
+        </div>
 
-      <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mt-28'>
         <div className='text-center'>
-          <div className='w-12 h-12 mx-auto mb-4 bg-gray-50 rounded-xl flex items-center justify-center'>
-            <BarChart3 className='w-6 h-6' />
+          <div className='w-12 h-12 mx-auto mb-4 bg-blue-50 rounded-xl flex items-center justify-center'>
+            <Target className='w-6 h-6 mx-auto text-green-500' />
           </div>
-          <h3 className='text-md font-semibold'>Analyze Data</h3>
-          <p className='text-md text-gray-700 mt-2'>Extract key business insights</p>
+          <h3 className='text-md font-semibold'>2. Score Fit</h3>
+          <p className='text-sm text-gray-600 mt-2'>Measure how well companies match your criteria.</p>
         </div>
         <div className='text-center'>
-          <div className='w-12 h-12 mx-auto mb-4 bg-gray-50 rounded-xl flex items-center justify-center'>
-            <Target className='w-6 h-6 mx-auto' />
+          <div className='w-12 h-12 mx-auto mb-4 bg-blue-50 rounded-xl flex items-center justify-center'>
+            <SearchCheck className='w-6 h-6 mx-auto text-purple-500' />
           </div>
-          <h3 className='text-md font-semibold'>Score Fit</h3>
-          <p className='text-md text-gray-700 mt-2'>Check alignment with your criteria</p>
+          <h3 className='text-md font-semibold'>3. Explore Sources</h3>
+          <p className='text-sm text-gray-600 mt-2'>Get data with sources and confidence scores.</p>
         </div>
         <div className='text-center'>
-          <div className='w-12 h-12 mx-auto mb-4 bg-gray-50 rounded-xl flex items-center justify-center'>
-            <MessageSquare className='w-6 h-6 mx-auto' />
+          <div className='w-12 h-12 mx-auto mb-4 bg-blue-50 rounded-xl flex items-center justify-center'>
+            <Mail className='w-6 h-6 mx-auto text-teal-600' />
           </div>
-          <h3 className='text-md font-semibold'>Explore Sources</h3>
-          <p className='text-md text-gray-700 mt-2'>See where each insight comes from</p>
+          <h3 className='text-md font-semibold'>4. Draft Outreach</h3>
+          <p className='text-sm text-gray-600 mt-2'>Generate LinkedIn and email drafts from research.</p>
         </div>
       </div>
     </div>

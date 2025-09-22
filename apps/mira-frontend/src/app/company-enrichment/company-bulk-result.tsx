@@ -272,7 +272,6 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
         <div className='flex items-center space-x-3'>
           <FileText className='w-6 h-6 text-blue-500' />
           <div>
-            <h2 className='text-xl font-semibold text-gray-900'>Bulk Enrichment Results</h2>
             <p className='text-sm text-gray-600'>
               Workspace: <span className='font-medium'>{workspaceName}</span>
             </p>
@@ -359,7 +358,7 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
       </div>
 
       {/* Footer Info */}
-      <div className='mt-4 text-sm text-gray-500 text-center'>
+      <div className='mt-4 text-xs text-gray-500 text-center'>
         Showing {csvResults.length} companies • Success rate:{' '}
         {csvResults.length > 0 ? Math.round((successCount / csvResults.length) * 100) : 0}%
       </div>
