@@ -1,10 +1,6 @@
 import { Database } from '@/constants/database.types';
 import { SupabaseClient, User } from '@supabase/supabase-js';
 
-export const Tables = {
-  Workspace: 'Workspace',
-};
-
 //=========================
 // Auth
 //=========================
@@ -24,7 +20,7 @@ export type WorkspaceRow = WorkspaceRecord['Row'];
 
 export const createWorkspace = async (supabase: SupabaseClient, Workspace: WorkspaceRecord['Insert']) => {
   try {
-    const { data, error } = await supabase.from(Tables.Workspace).insert(Workspace).select('*').single();
+    const { data, error } = await supabase.from('Workspace').insert(Workspace).select('*').single();
 
     if (error) {
       console.error('Error inserting Workspace:', error);
@@ -45,7 +41,7 @@ export const updateWorkspace = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from(Tables.Workspace)
+      .from('Workspace')
       .update(updatedFields)
       .eq('id', WorkspaceId)
       .select('id')
@@ -66,7 +62,7 @@ export const updateWorkspace = async (
 
 export const getWorkspaceById = async (supabase: SupabaseClient, WorkspaceId: string) => {
   try {
-    const { data, error } = await supabase.from(Tables.Workspace).select('*').eq('id', WorkspaceId).single();
+    const { data, error } = await supabase.from('Workspace').select('*').eq('id', WorkspaceId).single();
 
     if (error) {
       console.error('Error fetching Workspace by ID:', error);
@@ -83,7 +79,7 @@ export const getWorkspaceById = async (supabase: SupabaseClient, WorkspaceId: st
 export const getWorkspaces = async (supabase: SupabaseClient, authUserId: string) => {
   try {
     const { data, error } = await supabase
-      .from(Tables.Workspace)
+      .from('Workspace')
       .select('*')
       .eq('user_id', authUserId)
       .order('created_at', { ascending: true });
@@ -102,7 +98,7 @@ export const getWorkspaces = async (supabase: SupabaseClient, authUserId: string
 
 export const deleteWorkspaceById = async (supabase: SupabaseClient, WorkspaceId: string) => {
   try {
-    const { data, error } = await supabase.from(Tables.Workspace).delete().eq('id', WorkspaceId).select('id').single();
+    const { data, error } = await supabase.from('Workspace').delete().eq('id', WorkspaceId).select('id').single();
 
     if (error) {
       console.error('Error deleting Workspace by ID:', error);
