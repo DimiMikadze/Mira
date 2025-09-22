@@ -1,31 +1,39 @@
 'use client';
 
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2 } from 'lucide-react';
+
 interface BulkProgressProps {
   totalCompanies: number;
-  elapsedTime: string;
 }
 
-const CompanyBulkProgress = ({ totalCompanies, elapsedTime }: BulkProgressProps) => {
+const CompanyBulkProgress = ({ totalCompanies }: BulkProgressProps) => {
   return (
-    <div className='mt-8 mb-6'>
-      <div className='flex flex-col items-center justify-center space-y-6'>
-        {/* Title */}
-        <h3 className='text-2xl font-bold text-blue-600'>Processing Bulk Enrichment</h3>
-        <p className='text-gray-600'>Processing {totalCompanies} companies</p>
+    <div className='mt-8 mb-12'>
+      {/* Title */}
+      <div className='flex items-center space-x-2'>
+        <div className='w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center'>
+          <Loader2 className='w-3 h-3 text-white animate-spin' />
+        </div>
+        <p className='text-sm font-medium leading-none text-blue-600'>
+          Processing <b>{totalCompanies}</b> companies
+        </p>
+      </div>
 
-        {/* Bouncing dots */}
-        <div className='flex items-center justify-center space-x-2'>
-          <div className='w-3 h-3 bg-blue-600 rounded-full animate-bounce'></div>
-          <div className='w-3 h-3 bg-blue-600 rounded-full animate-bounce' style={{ animationDelay: '0.1s' }}></div>
-          <div className='w-3 h-3 bg-blue-600 rounded-full animate-bounce' style={{ animationDelay: '0.2s' }}></div>
+      <div className='flex flex-col gap-6 mt-12'>
+        <div className='flex flex-row justify-between'>
+          <Skeleton className='h-8 w-[200px]' />
+          <Skeleton className='h-8 w-[200px]' />
         </div>
 
-        <p className='text-lg font-medium text-gray-800'>Enriching company data...</p>
+        <div className='flex gap-4'>
+          <Skeleton className='h-22 w-full' />
+          <Skeleton className='h-22 w-full' />
+          <Skeleton className='h-22 w-full' />
+        </div>
 
-        {/* Elapsed Time */}
-        <div className='mt-6 p-4 bg-gray-50 rounded-lg'>
-          <p className='text-sm text-gray-500 mb-1 text-center'>Elapsed Time</p>
-          <p className='text-2xl font-mono font-bold text-blue-600 text-center'>{elapsedTime}</p>
+        <div>
+          <Skeleton className='h-100 w-full' />
         </div>
       </div>
     </div>

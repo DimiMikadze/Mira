@@ -97,7 +97,7 @@ async function processCompanies(
 
     const companies = parseResult.data;
     const totalCompanies = companies.length;
-    console.log(`Processing ${totalCompanies} companies for workspace ${workspaceId}`);
+    console.info(`Processing ${totalCompanies} companies for workspace ${workspaceId}`);
 
     // Create queue for rate limiting
     const queue = new PQueue({
@@ -137,9 +137,9 @@ async function processCompanies(
       queue.add(async () => {
         try {
           const domain = company.domain || company.Domain;
-          console.log(`Processing company ${index + 1}/${totalCompanies}: ${domain}`);
+          console.info(`Processing company ${index + 1}/${totalCompanies}: ${domain}`);
 
-          console.log(`Processing company ${index + 1}/${totalCompanies}: ${domain}`);
+          console.info(`Processing company ${index + 1}/${totalCompanies}: ${domain}`);
 
           // Prepare API configuration
           const config = {
@@ -263,7 +263,7 @@ async function processCompanies(
       .select()
       .single();
 
-    console.log(`Bulk enrichment completed for workspace ${workspaceId}`);
+    console.info(`Bulk enrichment completed for workspace ${workspaceId}`);
     return updatedWorkspace!;
   } catch (error) {
     console.error('Bulk enrichment failed:', error);

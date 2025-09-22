@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Loader2, Download, FileText, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { EnrichedCompany, CompanyAnalysis as CompanyAnalysisType } from 'mira-ai/types';
+import type { EnrichedCompany, CompanyAnalysis as CompanyAnalysisType, DataPoint } from 'mira-ai/types';
 import type { OutreachResult } from 'mira-ai';
 import CompanyAnalysis from './company-analysis';
 import CompanyDataPoints from './company-data-points';
@@ -15,11 +15,10 @@ interface CompanyBulkResultProps {
   csvResults: Record<string, string>[] | null;
   csvLoading: boolean;
   csvError: string;
-  workspaceName: string;
   csvUrl?: string;
 }
 
-const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, csvUrl }: CompanyBulkResultProps) => {
+const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: CompanyBulkResultProps) => {
   const [selectedCompany, setSelectedCompany] = useState<Record<string, string> | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string>('');
@@ -49,12 +48,33 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
         // Create enriched company data from CSV fields (EnrichedCompany is a record type)
         const enrichedCompany: EnrichedCompany = {};
 
-        // Add all CSV fields as DataPoints
+        // Add only relevant business data as DataPoints (exclude technical/outreach fields)
+        const excludedFields = [
+          'executiontime',
+          'sources',
+          'linkedinconnectionnote',
+          'linkedinacceptancemessage',
+          'linkedinsubject',
+          'linkedinmessage',
+          'emailsubject',
+          'emailmessage',
+          'emailfollowup',
+          'status',
+        ];
+
         Object.entries(company).forEach(([key, value]) => {
-          if (value && value.trim() !== '' && key !== 'status') {
+          if (value && value.trim() !== '') {
+            // Skip excluded fields
+            if (
+              excludedFields.some((field) => key.toLowerCase().includes(field)) ||
+              excludedFields.includes(key.toLowerCase())
+            ) {
+              return;
+            }
+
             enrichedCompany[key] = {
               content: value,
-              confidenceScore: 3, // Default confidence
+              confidenceScore: 0, // Hidden marker for bulk CSV data
               source: 'bulk_csv',
             };
           }
@@ -185,11 +205,8 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
           <div className='flex items-center space-x-3'>
             <FileText className='w-6 h-6 text-blue-500' />
             <div>
-              <h2 className='text-xl font-semibold text-gray-900'>
-                {selectedCompany.Name || selectedCompany.name || 'Company Details'}
-              </h2>
               <p className='text-sm text-gray-600'>
-                Domain: <span className='font-medium'>{selectedCompany.Domain || selectedCompany.domain}</span>
+                <span className='font-medium'>{selectedCompany.Domain || selectedCompany.domain}</span>
               </p>
             </div>
           </div>
@@ -217,11 +234,7 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
           <div className='space-y-8'>
             {/* Company Sources */}
             {companyDetails.enrichedCompany && (
-              <CompanySources
-                executionTime={companyDetails.executionTime}
-                sources={companyDetails.sources}
-                enrichedCompany={companyDetails.enrichedCompany}
-              />
+              <CompanySources sources={companyDetails.sources} enrichedCompany={companyDetails.enrichedCompany} />
             )}
 
             {/* Company Analysis */}
@@ -232,32 +245,6 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
 
             {/* Company Outreach */}
             {companyDetails.outreachResult && <CompanyOutreach outreach={companyDetails.outreachResult} />}
-
-            {/* Fallback: Show raw CSV data if no structured data available */}
-            {!companyDetails.enrichedCompany && selectedCompany && (
-              <div className='bg-white rounded-lg border overflow-hidden'>
-                <div className='px-6 py-4 border-b bg-gray-50'>
-                  <h3 className='text-lg font-medium text-gray-900'>Raw Data</h3>
-                  <p className='text-sm text-gray-600'>Available fields from CSV</p>
-                </div>
-                <div className='divide-y divide-gray-200'>
-                  {Object.entries(selectedCompany).map(([key, value]) => {
-                    if (!value || value.trim() === '') return null;
-
-                    return (
-                      <div key={key} className='px-6 py-4'>
-                        <div className='flex flex-col sm:flex-row sm:items-center gap-2'>
-                          <dt className='text-sm font-medium text-gray-900 sm:w-1/3'>
-                            {key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}
-                          </dt>
-                          <dd className='text-sm text-gray-700 sm:w-2/3 break-words'>{value}</dd>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -268,17 +255,9 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
   return (
     <div className='mt-8 mb-24'>
       {/* Header */}
-      <div className='flex items-center justify-between mb-6'>
-        <div className='flex items-center space-x-3'>
-          <FileText className='w-6 h-6 text-blue-500' />
-          <div>
-            <p className='text-sm text-gray-600'>
-              Workspace: <span className='font-medium'>{workspaceName}</span>
-            </p>
-          </div>
-        </div>
+      <div className='flex items-center justify-end mb-6'>
         {csvUrl && (
-          <Button onClick={handleDownload} size='sm' className='cursor-pointer'>
+          <Button onClick={handleDownload} size='sm' className='cursor-pointer' variant='outline'>
             <Download className='w-4 h-4 mr-2' />
             Download CSV
           </Button>
@@ -289,24 +268,26 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
       <div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-6'>
         <div className='bg-gray-50 rounded-lg p-4'>
           <div className='flex items-center space-x-2'>
-            <FileText className='w-5 h-5 text-gray-500' />
-            <span className='text-sm text-gray-600'>Total Companies</span>
+            <FileText className='w-5 h-5 text-gray-600' />
+            <span className='text-sm text-gray-600'>Total Companies:</span>
+            <div className='text-md font-semibold text-gray-700'>{csvResults.length}</div>
           </div>
-          <div className='text-2xl font-semibold text-gray-900 mt-1'>{csvResults.length}</div>
         </div>
-        <div className='bg-green-50 rounded-lg p-4'>
+
+        <div className='bg-gray-50 rounded-lg p-4'>
           <div className='flex items-center space-x-2'>
-            <CheckCircle className='w-5 h-5 text-green-500' />
-            <span className='text-sm text-green-600'>Successful</span>
+            <CheckCircle className='w-5 h-5 text-green-600' />
+            <span className='text-sm text-green-600'>Successful:</span>
+            <div className='text-md font-semibold text-green-700'>{successCount}</div>
           </div>
-          <div className='text-2xl font-semibold text-green-700 mt-1'>{successCount}</div>
         </div>
-        <div className='bg-red-50 rounded-lg p-4'>
+
+        <div className='bg-gray-50 rounded-lg p-4'>
           <div className='flex items-center space-x-2'>
-            <XCircle className='w-5 h-5 text-red-500' />
-            <span className='text-sm text-red-600'>Failed</span>
+            <XCircle className='w-5 h-5 text-red-600' />
+            <span className='text-sm text-red-600'>Failed:</span>
+            <div className='text-md font-semibold text-red-700'>{failedCount}</div>
           </div>
-          <div className='text-2xl font-semibold text-red-700 mt-1'>{failedCount}</div>
         </div>
       </div>
 
@@ -319,7 +300,6 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
         <div className='divide-y divide-gray-200'>
           {csvResults.map((company, index) => {
             const domain = company.Domain || company.domain;
-            const name = company.Name || company.name || domain;
             const status = company.status;
 
             return (
@@ -332,7 +312,6 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
                   <div className='flex-1'>
                     <div className='flex items-center space-x-3'>
                       <div>
-                        <p className='text-sm font-medium text-gray-900'>{name}</p>
                         <p className='text-sm text-blue-600 hover:text-blue-800'>{domain}</p>
                       </div>
                     </div>
@@ -340,13 +319,13 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
                   <div className='flex items-center space-x-2'>
                     {status === 'success' ? (
                       <div className='flex items-center space-x-1 text-green-700'>
-                        <CheckCircle className='w-4 h-4' />
-                        <span className='text-sm font-medium'>Success</span>
+                        <CheckCircle className='w-3 h-3' />
+                        <span className='text-xs font-medium'>Success</span>
                       </div>
                     ) : (
                       <div className='flex items-center space-x-1 text-red-700'>
                         <XCircle className='w-4 h-4' />
-                        <span className='text-sm font-medium'>Failed</span>
+                        <span className='text-xs font-medium'>Failed</span>
                       </div>
                     )}
                   </div>
@@ -359,8 +338,8 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, workspaceName, cs
 
       {/* Footer Info */}
       <div className='mt-4 text-xs text-gray-500 text-center'>
-        Showing {csvResults.length} companies • Success rate:{' '}
-        {csvResults.length > 0 ? Math.round((successCount / csvResults.length) * 100) : 0}%
+        {csvResults.length} companies processed.{' '}
+        {csvResults.length > 0 ? Math.round((successCount / csvResults.length) * 100) : 0}% Success rate
       </div>
     </div>
   );

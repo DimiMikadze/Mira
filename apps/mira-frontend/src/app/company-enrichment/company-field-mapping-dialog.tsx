@@ -94,8 +94,7 @@ const CompanyFieldMappingDialog = ({
         <DialogHeader>
           <DialogTitle>Map Company Fields</DialogTitle>
           <p className='text-sm text-gray-600'>
-            Match the columns in your CSV file to the fields Mira needs. <b>Website</b> is required, others are
-            optional.
+            Match the columns in your CSV file to the fields Mira needs. <b>Website</b> is required.
           </p>
         </DialogHeader>
 
@@ -192,10 +191,10 @@ const CompanyFieldMappingDialog = ({
         </div>
 
         <DialogFooter>
-          <Button variant='outline' onClick={handleCancel}>
+          <Button variant='outline' onClick={handleCancel} className='cursor-pointer'>
             Cancel
           </Button>
-          <Button onClick={handleConfirm} disabled={!domainField}>
+          <Button onClick={handleConfirm} disabled={!domainField} className='cursor-pointer'>
             Continue
           </Button>
         </DialogFooter>

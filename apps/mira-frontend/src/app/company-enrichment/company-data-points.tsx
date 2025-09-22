@@ -57,7 +57,9 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
 
   // Renders individual data points with confidence scores and source links
   const renderDataPoints = ({ name, dataPoint }: { name: string; dataPoint: DataPoint }) => {
-    const confidenceColors = getConfidenceColor(Number(dataPoint.confidenceScore));
+    // Hide confidence and source for bulk CSV data (marked with confidenceScore: 0 and source: 'bulk_csv')
+    const isBulkData = dataPoint.confidenceScore === 0 && dataPoint.source === 'bulk_csv';
+    const confidenceColors = !isBulkData ? getConfidenceColor(Number(dataPoint.confidenceScore)) : null;
 
     const renderContent = () => {
       // Handle logo URL special data point
@@ -184,45 +186,52 @@ const CompanyDataPoints: React.FC<CompanyDataPointsProps> = ({ enrichedCompany, 
         <div className='flex items-center mb-2'>
           <h3 className='whitespace-nowrap text-md font-semibold'>{name}</h3>
           <div className='flex items-center ml-4 opacity-0 group-hover:opacity-100 hover:opacity-100 transition-opacity'>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className='ml-0 w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition-colors'>
-                  <a
-                    href={dataPoint.source}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='hover:underline flex items-center'
+            {/* Source link - hide for bulk CSV data */}
+            {!isBulkData && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className='ml-0 w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition-colors'>
+                    <a
+                      href={dataPoint.source}
+                      target='_blank'
+                      rel='noopener noreferrer'
+                      className='hover:underline flex items-center'
+                    >
+                      <Link className='w-4 h-4 text-gray-600' />
+                    </a>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className='text-xs opacity-80 max-w-xs break-all'>{dataPoint.source}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {/* Confidence score - hide for bulk CSV data */}
+            {!isBulkData && confidenceColors && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`${!isBulkData ? 'ml-2' : 'ml-0'} w-8 h-8 rounded-full border-2 ${
+                      confidenceColors.border
+                    } ${confidenceColors.bg} flex items-center justify-center`}
                   >
-                    <Link className='w-4 h-4 text-gray-600' />
-                  </a>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className='text-xs opacity-80 max-w-xs break-all'>{dataPoint.source}</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className={`ml-2 w-8 h-8 rounded-full border-2 ${confidenceColors.border} ${confidenceColors.bg} flex items-center justify-center`}
-                >
-                  <div className={`text-sm ${confidenceColors.text}`}>{dataPoint.confidenceScore}</div>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Confidence: {dataPoint.confidenceScore}/5</p>
-                <p className='text-xs opacity-80'>{getConfidenceDescription(Number(dataPoint.confidenceScore))}</p>
-              </TooltipContent>
-            </Tooltip>
+                    <div className={`text-sm ${confidenceColors.text}`}>{dataPoint.confidenceScore}</div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Confidence: {dataPoint.confidenceScore}/5</p>
+                  <p className='text-xs opacity-80'>{getConfidenceDescription(Number(dataPoint.confidenceScore))}</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type='button'
                   onClick={() => handleCopy(dataPoint.content)}
-                  className='ml-2 w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center 
-                 hover:border-gray-400 transition-colors cursor-pointer
-                 [&:active_svg.copy-icon]:hidden [&:active_svg.check-icon]:block
-                 [&:focus_svg.copy-icon]:hidden [&:focus_svg.check-icon]:block'
+                  className={`${
+                    !isBulkData ? 'ml-2' : 'ml-0'
+                  } w-8 h-8 rounded-full border-2 border-gray-300 bg-white flex items-center justify-center hover:border-gray-400 transition-colors cursor-pointer [&:active_svg.copy-icon]:hidden [&:active_svg.check-icon]:block [&:focus_svg.copy-icon]:hidden [&:focus_svg.check-icon]:block`}
                   aria-label='Copy data point'
                 >
                   <Copy className='copy-icon w-4 h-4 text-gray-600 block' />

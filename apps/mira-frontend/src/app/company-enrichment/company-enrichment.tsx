@@ -77,8 +77,6 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
   }, [currentWorkspace]);
   const [enrichmentMode, setEnrichmentMode] = useState<EnrichmentMode>('idle');
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [elapsedTime, setElapsedTime] = useState<string>('0:00');
   const [csvResults, setCsvResults] = useState<Record<string, string>[] | null>(null);
   const [csvLoading, setCsvLoading] = useState(false);
   const [csvError, setCsvError] = useState<string>('');
@@ -264,7 +262,6 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
     setEnrichmentMode('bulk');
     setIsLoading(true);
     setApiErrorMessage('');
-    setStartTime(Date.now()); // Start timer when processing begins
     // Clear results
     setEnrichedCompany(null);
     setCompanyAnalysis(null);
@@ -326,8 +323,6 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
         throw new Error(result.error || 'Failed to start bulk enrichment');
       }
 
-      console.log('Bulk enrichment completed:', result);
-
       // Store total companies
       setTotalCompanies(result.totalCompanies || rowCount);
 
@@ -346,26 +341,10 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
     }
   };
 
-  // Update elapsed time every second when processing
-  useEffect(() => {
-    if (startTime && isLoading) {
-      const timer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        setElapsedTime(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [startTime, isLoading]);
-
   // Helper functions for handling bulk progress events
   const handleBulkComplete = () => {
-    console.log('Bulk enrichment completed');
     setIsLoading(false);
     setEnrichmentMode('idle');
-    setStartTime(null);
     // CSV results will be loaded automatically when workspace updates
   };
 
@@ -394,7 +373,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
           </Alert>
         )}
         {/* Welcome content - only show when not loading, no enriched data, and no CSV results */}
-        {!isShowingProgress && !enrichedCompany && !csvResults && <CompanySearchInfo />}
+        {/* {!isShowingProgress && !enrichedCompany && !csvResults && <CompanySearchInfo />} */}
 
         {/* Progress components - conditional based on enrichment mode */}
         {isShowingProgress && currentWorkspace && (
@@ -409,9 +388,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
                 outreach={workspaceToOutreach(currentWorkspace)}
               />
             )}
-            {enrichmentMode === 'bulk' && (
-              <CompanyBulkProgress totalCompanies={totalCompanies} elapsedTime={elapsedTime} />
-            )}
+            {enrichmentMode === 'bulk' && <CompanyBulkProgress totalCompanies={totalCompanies} />}
           </>
         )}
 
@@ -421,7 +398,6 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
             csvResults={csvResults}
             csvLoading={csvLoading}
             csvError={csvError}
-            workspaceName={currentWorkspace.name}
             csvUrl={currentWorkspace.generated_csv_file_url || undefined}
           />
         )}
