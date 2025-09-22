@@ -7,6 +7,7 @@ import { createWorkspace, updateWorkspace, WorkspaceRow } from '@/lib/supabase/o
 import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
 import CompanyWorkspaceModal from './company-workspace-modal';
+import CompanyBulkEnrichment from './company-bulk-enrichment';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +17,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { createSupabaseClient } from '@/lib/supabase/client';
 
+interface FieldMapping {
+  domain: string | null;
+  companyLinkedInURL: string | null;
+}
+
 interface CompanySearchInputProps {
   onSubmit: (url: string) => void;
+  onBulkProcess: (file: File, mapping: FieldMapping) => void;
   isLoading: boolean;
   workspaces: WorkspaceRow[];
   currentWorkspace: WorkspaceRow | null;
@@ -33,6 +40,7 @@ interface CompanySearchInputProps {
  */
 const CompanySearchInput = ({
   onSubmit,
+  onBulkProcess,
   isLoading,
   workspaces,
   currentWorkspace,
@@ -43,6 +51,9 @@ const CompanySearchInput = ({
   const [clientErrorMessage, setClientErrorMessage] = useState('');
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<WorkspaceRow | undefined>(undefined);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fieldMapping, setFieldMapping] = useState<FieldMapping | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
   // Enhanced onChange handler that clears error when valid URL is typed
@@ -116,11 +127,28 @@ const CompanySearchInput = ({
     }
   };
 
+  // Bulk enrichment handlers
+  const handleFileUpload = (file: File, mapping: FieldMapping) => {
+    setUploadedFile(file);
+    setFieldMapping(mapping);
+  };
+
+  const handleFileRemove = () => {
+    setUploadedFile(null);
+    setFieldMapping(null);
+    setIsProcessing(false);
+  };
+
+  const handleProcessStart = () => {
+    if (!uploadedFile || !currentWorkspace || !fieldMapping) return;
+
+    setIsProcessing(true);
+    onBulkProcess(uploadedFile, fieldMapping);
+  };
+
   return (
     <div className='w-full px-4'>
-      {/* Company URL input */}
-
-      <form onSubmit={handleSubmit} className='mx-auto max-w-4xl'>
+      <div className='mx-auto max-w-4xl'>
         <div className='relative w-full mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-4'>
           {/** Workspaces dropdown */}
           <DropdownMenu>
@@ -130,7 +158,15 @@ const CompanySearchInput = ({
                 variant='outline'
                 className='h-14 rounded-full gap-2 pl-3 pr-2 max-w-full sm:max-w-[240px] truncate border-gray-300 hover:border-gray-400 focus:border-black focus:border-2 transition-colors'
               >
-                <span className='truncate'>{currentWorkspace ? currentWorkspace.name : 'Select workspace'}</span>
+                <span className='truncate'>
+                  {currentWorkspace ? (
+                    <>
+                      <span className='text-xs'>Workspace:</span> {currentWorkspace.name}
+                    </>
+                  ) : (
+                    'Select workspace'
+                  )}
+                </span>
                 <ChevronDown className='h-4 w-4 opacity-70' />
               </Button>
             </DropdownMenuTrigger>
@@ -161,32 +197,48 @@ const CompanySearchInput = ({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/** Input and Button */}
-          <div className='relative w-full'>
-            <Input
-              type='text'
-              placeholder='Enter a company URL'
-              className={`w-full h-14 pl-6 pr-28 rounded-full border bg-white focus:outline-none focus:ring-0 text-base transition-colors ${
-                clientErrorMessage
-                  ? 'border-red-500 focus:border-red-500 focus:border-2 focus-visible:ring-0 focus-visible:border-red-500 focus-visible:border-2'
-                  : 'border-gray-300 !focus:border-black !focus:border-2 focus-visible:ring-0 !focus-visible:border-black !focus-visible:border-2'
-              }`}
-              onChange={handleUrlChange}
-              value={url}
+          {/** Bulk Enrichment Component */}
+          <div className='flex-shrink-0 w-full sm:w-auto hidden sm:block'>
+            <CompanyBulkEnrichment
+              onFileUpload={handleFileUpload}
+              onFileRemove={handleFileRemove}
+              onProcessStart={handleProcessStart}
+              uploadedFile={uploadedFile}
+              isProcessing={isProcessing || isLoading}
             />
-
-            <Button
-              disabled={isLoading || !currentWorkspace}
-              type='submit'
-              className='absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full p-0 cursor-pointer'
-            >
-              <Search className='w-5 h-5 text-white' />
-            </Button>
           </div>
+
+          {/** Company URL Input - only show when no file is uploaded */}
+          {!uploadedFile && (
+            <form onSubmit={handleSubmit} className='relative w-full'>
+              <Input
+                type='text'
+                placeholder='Enter a company URL'
+                className={`w-full h-14 pl-6 pr-28 rounded-full border bg-white focus:outline-none focus:ring-0 text-base transition-colors ${
+                  clientErrorMessage
+                    ? 'border-red-500 focus:border-red-500 focus:border-2 focus-visible:ring-0 focus-visible:border-red-500 focus-visible:border-2'
+                    : 'border-gray-300 !focus:border-black !focus:border-2 focus-visible:ring-0 !focus-visible:border-black !focus-visible:border-2'
+                }`}
+                onChange={handleUrlChange}
+                value={url}
+              />
+
+              <Button
+                disabled={isLoading || !currentWorkspace}
+                type='submit'
+                className='absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full p-0 cursor-pointer'
+              >
+                <Search className='w-5 h-5 text-white' />
+              </Button>
+            </form>
+          )}
         </div>
+
         {/* Client Error message */}
-        {clientErrorMessage && <div className='text-red-500 text-sm mt-3 ml-0 sm:ml-34'>{clientErrorMessage}</div>}
-      </form>
+        {clientErrorMessage && !uploadedFile && (
+          <div className='text-red-500 text-sm mt-3 ml-0 sm:ml-60'>{clientErrorMessage}</div>
+        )}
+      </div>
 
       {/* Workspace Modal */}
       <CompanyWorkspaceModal

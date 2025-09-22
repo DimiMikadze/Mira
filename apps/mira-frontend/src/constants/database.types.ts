@@ -19,12 +19,19 @@ export type Database = {
           analysis_company_criteria: string | null
           analysis_executive_summary: boolean
           created_at: string
+          csv_file_url: string | null
+          csv_mapping: Json | null
           datapoints: Json
+          generated_csv_file_url: string | null
           id: string
           name: string
           outreach_email: boolean
           outreach_linkedin: boolean
           outreach_prompt: string | null
+          run_error: string | null
+          run_finished_at: string | null
+          run_started_at: string | null
+          run_status: string | null
           source_crawl: boolean
           source_google: boolean
           source_linkedin: boolean
@@ -35,12 +42,19 @@ export type Database = {
           analysis_company_criteria?: string | null
           analysis_executive_summary?: boolean
           created_at?: string
+          csv_file_url?: string | null
+          csv_mapping?: Json | null
           datapoints?: Json
+          generated_csv_file_url?: string | null
           id?: string
           name: string
           outreach_email?: boolean
           outreach_linkedin?: boolean
           outreach_prompt?: string | null
+          run_error?: string | null
+          run_finished_at?: string | null
+          run_started_at?: string | null
+          run_status?: string | null
           source_crawl?: boolean
           source_google?: boolean
           source_linkedin?: boolean
@@ -51,12 +65,19 @@ export type Database = {
           analysis_company_criteria?: string | null
           analysis_executive_summary?: boolean
           created_at?: string
+          csv_file_url?: string | null
+          csv_mapping?: Json | null
           datapoints?: Json
+          generated_csv_file_url?: string | null
           id?: string
           name?: string
           outreach_email?: boolean
           outreach_linkedin?: boolean
           outreach_prompt?: string | null
+          run_error?: string | null
+          run_finished_at?: string | null
+          run_started_at?: string | null
+          run_status?: string | null
           source_crawl?: boolean
           source_google?: boolean
           source_linkedin?: boolean

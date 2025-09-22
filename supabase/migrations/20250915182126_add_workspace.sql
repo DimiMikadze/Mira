@@ -21,6 +21,15 @@ create table public."Workspace" (
   outreach_email boolean not null default false,
   outreach_prompt text,
 
+  -- Bulk processing configuration
+  csv_file_url text,
+  generated_csv_file_url text,
+  run_status text check (run_status in ('idle', 'running', 'done', 'failed', 'canceled')) default 'idle',
+  csv_mapping jsonb,
+  run_started_at timestamptz,
+  run_finished_at timestamptz,
+  run_error text,
+
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -32,6 +41,8 @@ alter table public."Workspace"
 -- Indexes
 create index workspace_user_id_idx on public."Workspace" (user_id);
 create index workspace_datapoints_gin_idx on public."Workspace" using gin (datapoints jsonb_path_ops);
+create index workspace_csv_mapping_gin_idx on public."Workspace" using gin (csv_mapping jsonb_path_ops);
+create index workspace_run_status_idx on public."Workspace" (run_status);
 
 -- Updated-at trigger
 create or replace function public.set_updated_at()
@@ -64,3 +75,24 @@ create policy "Owners can update own Workspaces"
 create policy "Owners can delete own Workspaces"
   on public."Workspace" for delete
   using (auth.uid() = user_id);
+
+-- Create CSV storage bucket
+insert into storage.buckets (id, name, public)
+values ('CSV', 'CSV', true);
+
+-- Storage policies for CSV bucket
+create policy "Users can upload CSV files"
+  on storage.objects for insert
+  with check (bucket_id = 'CSV' AND auth.uid() is not null);
+
+create policy "Users can view CSV files"
+  on storage.objects for select
+  using (bucket_id = 'CSV' AND auth.uid() is not null);
+
+create policy "Users can update their own CSV files"
+  on storage.objects for update
+  using (bucket_id = 'CSV' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+create policy "Users can delete their own CSV files"
+  on storage.objects for delete
+  using (bucket_id = 'CSV' AND auth.uid()::text = (storage.foldername(name))[1]);

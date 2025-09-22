@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { EnrichedCompany } from 'mira-ai/types';
 
 import CompanyAnalysis from './company-analysis';
@@ -9,16 +9,28 @@ import CompanyProgress from './company-progress';
 import CompanySources from './company-sources';
 import CompanySearchInput from './company-search-input';
 import CompanySearchInfo from './company-search-info';
+import CompanyBulkResult from './company-bulk-result';
+import CompanyBulkProgress from './company-bulk-progress';
 import { PROGRESS_EVENTS, type ProgressEventType } from 'mira-ai/types';
 
 import type { CompanyAnalysis as CompanyAnalysisType } from 'mira-ai/types';
 import { CircleAlert } from 'lucide-react';
 import { Alert, AlertTitle } from '@/components/ui/alert';
-import { API_ENDPOINTS, workspaceToEnrichmentSources, workspaceToAnalysis, workspaceToOutreach } from '@/lib/utils';
+import {
+  API_ENDPOINTS,
+  workspaceToEnrichmentSources,
+  workspaceToAnalysis,
+  workspaceToOutreach,
+  storage,
+} from '@/lib/utils';
 import { type OutreachResult } from 'mira-ai';
 import CompanyOutreach from './company-outreach';
 import { WorkspaceRow } from '@/lib/supabase/orm';
 import { User } from '@supabase/supabase-js';
+import { uploadUserCSVFile } from '@/lib/supabase/file';
+import Papa from 'papaparse';
+
+type EnrichmentMode = 'single' | 'bulk' | 'idle';
 
 /**
  * Company Enrichment UI Component
@@ -45,6 +57,81 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
 
   const [currentWorkspace, setCurrentWorkspace] = useState<WorkspaceRow | null>(null);
 
+  // Load workspace from localStorage on component mount
+  useEffect(() => {
+    const savedWorkspaceId = storage.get('selectedWorkspace');
+
+    if (savedWorkspaceId && workspaces.length > 0) {
+      const savedWorkspace = workspaces.find((w) => w.id === savedWorkspaceId);
+      if (savedWorkspace && !currentWorkspace) {
+        setCurrentWorkspace(savedWorkspace);
+      }
+    }
+  }, [workspaces, currentWorkspace]);
+
+  // Save workspace to localStorage when it changes
+  useEffect(() => {
+    if (currentWorkspace) {
+      storage.set('selectedWorkspace', currentWorkspace.id);
+    }
+  }, [currentWorkspace]);
+  const [enrichmentMode, setEnrichmentMode] = useState<EnrichmentMode>('idle');
+  const [totalCompanies, setTotalCompanies] = useState<number>(0);
+  const [csvResults, setCsvResults] = useState<Record<string, string>[] | null>(null);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const [csvError, setCsvError] = useState<string>('');
+
+  // Load CSV results when workspace changes
+  useEffect(() => {
+    const loadCsvResults = async () => {
+      if (!currentWorkspace?.generated_csv_file_url) {
+        setCsvResults(null);
+        setCsvError('');
+        return;
+      }
+
+      setCsvLoading(true);
+      setCsvError('');
+
+      try {
+        const response = await fetch(currentWorkspace.generated_csv_file_url);
+        if (!response.ok) {
+          throw new Error('Failed to fetch CSV results');
+        }
+
+        const csvText = await response.text();
+
+        // Parse CSV using Papa Parse
+        const parseResult = await new Promise<Papa.ParseResult<Record<string, string>>>((resolve, reject) => {
+          Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+              if (results.errors.length > 0) {
+                reject(new Error(`CSV parsing errors: ${results.errors.map((e) => e.message).join(', ')}`));
+                return;
+              }
+              resolve(results as Papa.ParseResult<Record<string, string>>);
+            },
+            error: (error: Error) => {
+              reject(new Error(`Failed to parse CSV: ${error.message}`));
+            },
+          });
+        });
+
+        setCsvResults(parseResult.data);
+      } catch (error) {
+        console.error('Error loading CSV results:', error);
+        setCsvError(error instanceof Error ? error.message : 'Failed to load CSV results');
+        setCsvResults(null);
+      } finally {
+        setCsvLoading(false);
+      }
+    };
+
+    loadCsvResults();
+  }, [currentWorkspace?.generated_csv_file_url]);
+
   // Handles form submission and API call for company enrichment
   const sendEnrichRequest = async (url: string) => {
     if (!currentWorkspace) {
@@ -52,7 +139,8 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
       return;
     }
 
-    // Clear state and set initial progress
+    // Clear state and set initial progress for single enrichment
+    setEnrichmentMode('single');
     setApiErrorMessage('');
     setProgressMessage('Starting enrichment...');
     setCurrentEventType(PROGRESS_EVENTS.CONNECTED);
@@ -61,6 +149,8 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
     setEnrichedCompany(null);
     setCompanyAnalysis(null);
     setOutreachResult(null);
+    setCsvResults(null);
+    setCsvError('');
     setIsLoading(true);
     setSources([]);
 
@@ -137,6 +227,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
                   setProgressMessage('');
                   setCurrentEventType(undefined);
                   setStepMessages({});
+                  setEnrichmentMode('idle');
                 }
               } catch (error) {
                 console.error('[SSE] Error parsing event:', error);
@@ -154,14 +245,118 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
       setProgressMessage('');
       setCurrentEventType(undefined);
       setStepMessages({});
+      setEnrichmentMode('idle');
     }
   };
+
+  // Handles bulk processing of companies from CSV file
+  const handleBulkProcess = async (
+    file: File,
+    mapping: { domain: string | null; companyLinkedInURL: string | null }
+  ) => {
+    if (!currentWorkspace) {
+      setApiErrorMessage('Please select a workspace first');
+      return;
+    }
+
+    setEnrichmentMode('bulk');
+    setIsLoading(true);
+    setApiErrorMessage('');
+    // Clear results
+    setEnrichedCompany(null);
+    setCompanyAnalysis(null);
+    setOutreachResult(null);
+    setCsvResults(null);
+    setCsvError('');
+
+    try {
+      // Parse CSV to validate and count rows
+      const fileContent = await file.text();
+      const parseResult = await new Promise<Papa.ParseResult<Record<string, string>>>((resolve, reject) => {
+        Papa.parse(fileContent, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            if (results.errors.length > 0) {
+              reject(new Error(`CSV parsing errors: ${results.errors.map((e) => e.message).join(', ')}`));
+              return;
+            }
+            resolve(results as Papa.ParseResult<Record<string, string>>);
+          },
+          error: (error: Error) => {
+            reject(new Error(`Failed to parse CSV: ${error.message}`));
+          },
+        });
+      });
+
+      // Validate CSV has required columns
+      const headers = parseResult.meta.fields || [];
+      if (!headers.includes(mapping.domain!)) {
+        throw new Error(`Domain field "${mapping.domain}" not found in CSV headers`);
+      }
+
+      const rowCount = parseResult.data.length;
+
+      // Set total companies immediately so the progress display shows the correct count
+      setTotalCompanies(rowCount);
+
+      // Upload CSV file directly to storage
+      const fileUrl = await uploadUserCSVFile(file, authUser.id);
+
+      // Start bulk enrichment processing
+      const response = await fetch('/api/bulk-enrich', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          workspaceId: currentWorkspace.id,
+          csvMapping: mapping,
+          csvFileUrl: fileUrl,
+          rowCount,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to start bulk enrichment');
+      }
+
+      // Store total companies
+      setTotalCompanies(result.totalCompanies || rowCount);
+
+      // Update workspace with completed results
+      if (result.workspace) {
+        setCurrentWorkspace(result.workspace);
+      }
+
+      // Enrichment is done, show results
+      handleBulkComplete();
+    } catch (error) {
+      console.error('Bulk processing error:', error);
+      setApiErrorMessage(error instanceof Error ? error.message : 'Failed to start bulk processing');
+      setEnrichmentMode('idle');
+      setIsLoading(false);
+    }
+  };
+
+  // Helper functions for handling bulk progress events
+  const handleBulkComplete = () => {
+    setIsLoading(false);
+    setEnrichmentMode('idle');
+    // CSV results will be loaded automatically when workspace updates
+  };
+
+  // Determine if we should show progress
+  const isShowingProgress = isLoading;
 
   return (
     <div>
       {/* Company Search Input */}
       <CompanySearchInput
         onSubmit={sendEnrichRequest}
+        onBulkProcess={handleBulkProcess}
         isLoading={isLoading}
         workspaces={workspaces}
         currentWorkspace={currentWorkspace}
@@ -177,18 +372,33 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
             <AlertTitle>{apiErrorMessage}</AlertTitle>
           </Alert>
         )}
-        {/* Welcome content - only show when not loading and no enriched data */}
-        {!isLoading && !enrichedCompany && <CompanySearchInfo workspaces={workspaces} />}
+        {/* Welcome content - only show when not loading, no enriched data, and no CSV results */}
+        {/* {!isShowingProgress && !enrichedCompany && !csvResults && <CompanySearchInfo />} */}
 
-        {/* Progress component */}
-        {isLoading && currentWorkspace && (
-          <CompanyProgress
-            progressMessage={progressMessage}
-            currentEventType={currentEventType}
-            stepMessages={stepMessages}
-            sources={workspaceToEnrichmentSources(currentWorkspace)}
-            analysis={workspaceToAnalysis(currentWorkspace)}
-            outreach={workspaceToOutreach(currentWorkspace)}
+        {/* Progress components - conditional based on enrichment mode */}
+        {isShowingProgress && currentWorkspace && (
+          <>
+            {enrichmentMode === 'single' && (
+              <CompanyProgress
+                progressMessage={progressMessage}
+                currentEventType={currentEventType}
+                stepMessages={stepMessages}
+                sources={workspaceToEnrichmentSources(currentWorkspace)}
+                analysis={workspaceToAnalysis(currentWorkspace)}
+                outreach={workspaceToOutreach(currentWorkspace)}
+              />
+            )}
+            {enrichmentMode === 'bulk' && <CompanyBulkProgress totalCompanies={totalCompanies} />}
+          </>
+        )}
+
+        {/* Company Bulk Results - show when workspace has results and not loading */}
+        {currentWorkspace && !isShowingProgress && !enrichedCompany && (
+          <CompanyBulkResult
+            csvResults={csvResults}
+            csvLoading={csvLoading}
+            csvError={csvError}
+            csvUrl={currentWorkspace.generated_csv_file_url || undefined}
           />
         )}
 

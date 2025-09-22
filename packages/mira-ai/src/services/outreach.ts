@@ -36,8 +36,6 @@ export async function generateOutreach(
     // Create prompt for the requested outreach types
     const prompt = createOutreachPrompt(enrichedCompany, outreachConfig);
 
-    console.log('outreach prompt', prompt);
-
     const response = await run(agent, prompt);
     const result = (response?.finalOutput || {}) as OutreachResult;
 
