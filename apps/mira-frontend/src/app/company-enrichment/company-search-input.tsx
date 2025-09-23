@@ -158,9 +158,7 @@ const CompanySearchInput = ({
                 variant='outline'
                 className='h-14 rounded-full gap-2 pl-3 pr-2 max-w-full sm:max-w-[240px] truncate border-gray-300 hover:border-gray-400 focus:border-black focus:border-2 transition-colors cursor-pointer'
               >
-                <span className='truncate font-medium'>
-                  {currentWorkspace ? currentWorkspace.name : 'Select agent'}
-                </span>
+                <span className='truncate text-sm'>{currentWorkspace ? currentWorkspace.name : 'Select agent'}</span>
                 <ChevronDown className='h-4 w-4 opacity-70' />
               </Button>
             </DropdownMenuTrigger>

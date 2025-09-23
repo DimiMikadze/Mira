@@ -1,0 +1,34 @@
+[
+  {
+    "name": "Name",
+    "description": "Official company name as it appears on the website, cleaned and properly capitalized."
+  },
+  {
+    "name": "Overview",
+    "description": "Concise company description highlighting core value proposition, main products/services, and target audience (1–2 sentences)."
+  },
+  {
+    "name": "Industry",
+    "description": "Specific industry or sector classification (e.g., \"Developer Tools\", \"SaaS\", \"Fintech\"). Use precise terms rather than broad categories."
+  },
+  {
+    "name": "Headquarters",
+    "description": "Primary headquarters location with city and state/country (e.g., \"San Francisco, CA\", \"London, UK\")."
+  },
+  {
+    "name": "Company Size",
+    "description": "Number of employees or company size range (e.g., \"50–200 employees\", \"1,000+ team members\")."
+  },
+  {
+    "name": "Recent Funding",
+    "description": "Latest funding round with amount, stage, date, and lead investors when mentioned (e.g., \"Series B $25M led by Acme Ventures in March 2024\")."
+  },
+  {
+    "name": "Market Presence",
+    "description": "Geographic markets, regions, or countries where the company operates or serves customers (e.g., \"Global\", \"North America and Europe\")."
+  },
+  {
+    "name": "Target Customer Segment",
+    "description": "Primary customer base or audience (e.g., \"Developers\", \"Enterprises\", \"SMBs\")."
+  }
+]

@@ -171,7 +171,7 @@ const CompanyOutreach = ({ outreach }: CompanyOutreachProps) => {
             {outreach.email.email_message && (
               <div className='group'>
                 <div className='flex items-center justify-between mb-2'>
-                  <h4 className='font-bold text-sm text-gray-700'>Email Message</h4>
+                  <h4 className='font-bold text-sm text-gray-700'>Email Body</h4>
                   <button
                     type='button'
                     onClick={() => handleCopy(outreach.email!.email_message)}
@@ -196,7 +196,7 @@ const CompanyOutreach = ({ outreach }: CompanyOutreachProps) => {
             {outreach.email.email_follow_up_message && (
               <div className='group'>
                 <div className='flex items-center justify-between mb-2'>
-                  <h4 className='font-bold text-sm text-gray-700'>Follow-up Email Message</h4>
+                  <h4 className='font-bold text-sm text-gray-700'>Follow-up</h4>
                   <button
                     type='button'
                     onClick={() => handleCopy(outreach.email!.email_follow_up_message)}

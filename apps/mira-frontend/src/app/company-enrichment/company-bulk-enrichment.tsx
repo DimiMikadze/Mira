@@ -213,8 +213,7 @@ const CompanyBulkEnrichment = ({
             disabled={isProcessing}
             title='Start processing'
           >
-            <Play className='h-4 w-4 mr-1' />
-            Process
+            <Play className='h-4 w-4' />
           </Button>
         </div>
 

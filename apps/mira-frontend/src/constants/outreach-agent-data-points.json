@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Name",
+    "description": "Official company name as it appears on the website, cleaned and properly capitalized."
+  },
+  {
+    "name": "Overview",
+    "description": "Concise company description highlighting what they do and for whom (1–2 sentences)."
+  },
+  {
+    "name": "Industry",
+    "description": "Specific industry classification (e.g., \"Developer Tools\", \"SaaS\")."
+  },
+  {
+    "name": "Recent Funding",
+    "description": "Most recent funding round with details such as amount, investors, and date (e.g., \"Series C $100M in Jan 2025 led by Sequoia\")."
+  },
+  {
+    "name": "Recent News",
+    "description": "Recent announcement, press release, or major update relevant for personalization (e.g., \"New product launch\", \"Global expansion\")."
+  },
+  {
+    "name": "Target Customer Segment",
+    "description": "Primary customer base or audience (e.g., \"Developers\", \"Enterprises\")."
+  },
+  {
+    "name": "Leadership",
+    "description": "Names and roles of key executives or founders (e.g., \"John Smith, CEO\")."
+  },
+  {
+    "name": "LINKEDIN_POSTS",
+    "description": "LinkedIn Posts. Array of LinkedInPost objects with timeAgo (required) and text (required) properties extracted from the LinkedIn company page."
+  },
+  {
+    "name": "New Product Launch",
+    "description": "Recently launched products, features, or services with launch dates and key details when available (e.g., \"AI Analytics Dashboard launched Q1 2025\", \"Mobile app beta release\", \"Enterprise tier announced\")."
+  },
+  {
+    "name": "New Executive Hirs",
+    "description": "Recent executive hires, appointments, or leadership changes with names, previous companies, and roles (e.g., \"Former Uber VP John Smith joins as Chief Revenue Officer\", \"New CTO from Google\")."
+  },
+  {
+    "name": "Upcoming Events",
+    "description": "Scheduled conferences, webinars, trade shows, or events the company is hosting or participating in, with dates and event names (e.g., \"Speaking at TechConf 2025 in May\", \"Hosting product webinar March 15\")."
+  },
+  {
+    "name": "Recent Event Participation",
+    "description": "Recent conferences attended, speaking engagements, or event participation with event names and roles (e.g., \"Keynote at SaaS Summit 2024\", \"Panel discussion at TechWeek\", \"Booth at CES 2024\")."
+  }
+]
