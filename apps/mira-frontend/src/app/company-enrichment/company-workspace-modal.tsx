@@ -57,16 +57,18 @@ const WorkspaceSection = ({
   description,
   children,
 }: {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   children: React.ReactNode;
 }) => {
   return (
     <Card className='bg-gray-100 shadow-none rounded-2xl'>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <p className='text-sm text-muted-foreground'>{description}</p>
-      </CardHeader>
+      {(title || description) && (
+        <CardHeader>
+          {title && <CardTitle>{title}</CardTitle>}
+          {description && <p className='text-sm text-muted-foreground'>{description}</p>}
+        </CardHeader>
+      )}
       <CardContent className='space-y-4'>{children}</CardContent>
     </Card>
   );
@@ -141,22 +143,22 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className='max-h-[90vh] overflow-y-auto max-w-screen-lg sm:max-w-xl lg:max-w-2xl'>
+      <DialogContent className='max-h-[90vh] overflow-y-auto max-w-screen-lg sm:max-w-xl lg:max-w-4xl'>
         <DialogHeader>
-          <DialogTitle>{workspace ? 'Edit Workspace' : 'New Workspace'}</DialogTitle>
+          <DialogTitle>{workspace ? 'Edit Agent' : 'Create Agent'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form id='workspace-form' onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             {/* Workspace Name */}
-            <WorkspaceSection title='Workspace Name' description='Give your workspace a name to identify it easily.'>
+            <WorkspaceSection>
               <FormField
                 control={control}
                 name='name'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Agent Name</FormLabel>
                     <FormControl>
-                      <Input placeholder='Name your workspace' {...field} />
+                      <Input placeholder='Name your agent' {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -166,7 +168,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
             {/* Data Points */}
             <WorkspaceSection
-              title='Custom Data Points'
+              title='Data Points'
               description='Define the data points you want Mira to extract. You need at least one.'
             >
               <div className='space-y-4'>
@@ -180,7 +182,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                           name={`dataPoints.${index}.name`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Name</FormLabel>
+                              <FormLabel className='text-xs text-muted-foreground'>Name</FormLabel>
                               <FormControl>
                                 <Input placeholder='e.g., Industry' {...field} />
                               </FormControl>
@@ -198,7 +200,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                             name={`dataPoints.${index}.description`}
                             render={({ field }) => (
                               <FormItem className='flex-1'>
-                                <FormLabel>Description</FormLabel>
+                                <FormLabel className='text-xs text-muted-foreground'>Description</FormLabel>
                                 <FormControl>
                                   <Input placeholder='e.g., Main sector the company operates in' {...field} />
                                 </FormControl>
@@ -233,8 +235,8 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
             {/* Sources */}
             <WorkspaceSection
-              title='Sources (optional)'
-              description='Mira always processes the company’s main landing page. You can also enable additional sources for a more complete view.'
+              title='Sources'
+              description="Mira always processes the company's main landing page. You can also enable additional sources for a more complete view."
             >
               <div className='grid gap-4'>
                 <FormField
@@ -243,7 +245,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
                   render={({ field }) => (
                     <FormItem className='flex items-center justify-between rounded-2xl border p-4 bg-white'>
                       <div>
-                        <FormLabel className='text-base'>Website Crawl</FormLabel>
+                        <FormLabel className='text-base'>Website Explore</FormLabel>
                         <FormDescription>
                           Mira explores key internal pages on the company&apos;s website and collects information from
                           them.
@@ -296,7 +298,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
             {/* Analysis */}
             <WorkspaceSection
-              title='Analysis (optional)'
+              title='Analysis'
               description='Configure additional analysis options for your enrichment results.'
             >
               <div className='grid gap-4'>
@@ -345,7 +347,7 @@ export default function CompanyWorkspaceModal({ workspace, open, onOpenChange, o
 
             {/* Outreach */}
             <WorkspaceSection
-              title='Outreach (optional)'
+              title='Outreach'
               description='Draft personalized outreach messages using AI after company research is complete.'
             >
               <div className='grid gap-4'>

@@ -156,31 +156,29 @@ const CompanySearchInput = ({
               <Button
                 type='button'
                 variant='outline'
-                className='h-14 rounded-full gap-2 pl-3 pr-2 max-w-full sm:max-w-[240px] truncate border-gray-300 hover:border-gray-400 focus:border-black focus:border-2 transition-colors'
+                className='h-14 rounded-full gap-2 pl-3 pr-2 max-w-full sm:max-w-[240px] truncate border-gray-300 hover:border-gray-400 focus:border-black focus:border-2 transition-colors cursor-pointer'
               >
-                <span className='truncate'>
-                  {currentWorkspace ? (
-                    <>
-                      <span className='text-xs'>Workspace:</span> {currentWorkspace.name}
-                    </>
-                  ) : (
-                    'Select workspace'
-                  )}
+                <span className='truncate font-medium'>
+                  {currentWorkspace ? currentWorkspace.name : 'Select agent'}
                 </span>
                 <ChevronDown className='h-4 w-4 opacity-70' />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='start' className='w-72'>
-              <DropdownMenuItem onClick={openWorkspaceCreate} className='gap-2'>
+              <DropdownMenuItem onClick={openWorkspaceCreate} className='gap-2 cursor-pointer'>
                 <FolderPlus className='h-4 w-4' />
-                Create workspace
+                Create an Agent
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               {workspaces.length === 0 ? (
-                <DropdownMenuItem disabled>No workspaces yet</DropdownMenuItem>
+                <DropdownMenuItem disabled>No agents yet</DropdownMenuItem>
               ) : (
                 workspaces.map((ws) => (
-                  <DropdownMenuItem key={ws.id} onClick={() => setCurrentWorkspace(ws)} className='gap-2 group'>
+                  <DropdownMenuItem
+                    key={ws.id}
+                    onClick={() => setCurrentWorkspace(ws)}
+                    className='gap-2 group cursor-pointer'
+                  >
                     <Folder className='h-4 w-4' />
                     <span className='truncate flex-1'>{ws.name}</span>
                     <Button

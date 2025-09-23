@@ -269,24 +269,24 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: Company
         <div className='bg-gray-50 rounded-lg p-4'>
           <div className='flex items-center space-x-2'>
             <FileText className='w-5 h-5 text-gray-600' />
-            <span className='text-sm text-gray-600'>Total Companies:</span>
-            <div className='text-md font-semibold text-gray-700'>{csvResults.length}</div>
+            <span className='text-xs text-gray-600'>Total Companies:</span>
+            <div className='text-sm font-semibold text-gray-700'>{csvResults.length}</div>
           </div>
         </div>
 
         <div className='bg-gray-50 rounded-lg p-4'>
           <div className='flex items-center space-x-2'>
             <CheckCircle className='w-5 h-5 text-green-600' />
-            <span className='text-sm text-green-600'>Successful:</span>
-            <div className='text-md font-semibold text-green-700'>{successCount}</div>
+            <span className='text-xs text-green-600'>Successful:</span>
+            <div className='text-sm font-semibold text-green-700'>{successCount}</div>
           </div>
         </div>
 
         <div className='bg-gray-50 rounded-lg p-4'>
           <div className='flex items-center space-x-2'>
             <XCircle className='w-5 h-5 text-red-600' />
-            <span className='text-sm text-red-600'>Failed:</span>
-            <div className='text-md font-semibold text-red-700'>{failedCount}</div>
+            <span className='text-xs text-red-600'>Failed:</span>
+            <div className='text-sm font-semibold text-red-700'>{failedCount}</div>
           </div>
         </div>
       </div>
@@ -294,7 +294,6 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: Company
       {/* Company List - Only Domain Names */}
       <div className='bg-white rounded-lg border overflow-hidden'>
         <div className='px-6 py-4 border-b bg-gray-50'>
-          <h3 className='text-lg font-medium text-gray-900'>Companies</h3>
           <p className='text-sm text-gray-600'>Click on a domain to view detailed information</p>
         </div>
         <div className='divide-y divide-gray-200'>
