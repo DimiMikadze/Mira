@@ -7,8 +7,8 @@ It provides a complete application interface for the Mira AI Library with worksp
 
 - **User Authentication** – Secure sign-in with Supabase Auth
 - **Workspace Management** – Create and manage multiple research configurations with custom data points, sources, and analysis settings
-- **Real-time Progress Tracking** – Live updates during company research with step-by-step progress visualization
-- **Research Results Visualization** – Comprehensive display of enriched company data, confidence scores, and analysis results
+- **Real-time Progress Tracking** – Live updates during company data enrichment with step-by-step progress visualization
+- **Enrichment Results Visualization** – Comprehensive display of enriched company data, confidence scores, and analysis results
 
 ## Structure
 
@@ -69,4 +69,4 @@ The frontend uses Supabase for user authentication and workspace management. Use
 
 - **Sign in** with their credentials through the Supabase Auth system
 - **Manage private workspaces** with their own custom data points, sources, and analysis configurations
-- **Access their research history** and results
+- **Access their enrichment history** and results

@@ -2,7 +2,7 @@
   <img src="apps/mira-frontend/public/logo.svg" alt="Mira Logo" width="300" />
 </p>
 
-<p align="center">Agentic AI System for Company Research</p>
+<p align="center">Agentic AI System for Company Data Enrichment</p>
 
 <div align="center">
 
@@ -21,7 +21,7 @@
 
 # About Mira
 
-Mira is an agentic AI system that automates company research with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
+Mira is an agentic AI system that automates company data enrichment with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
 
 The system features smart early termination - once all configured data points reach high confidence scores, it automatically stops processing to save time and API costs. Sources are fully configurable, allowing you to enable or disable website crawling, LinkedIn analysis, and Google Search based on your needs.
 
@@ -94,7 +94,7 @@ The system continuously monitors data point confidence scores. If all configured
 
 ### Frontend Application (`apps/mira-frontend`)
 
-- **Next.js** – full-featured interface to run research and display results.
+- **Next.js** – full-featured interface to run enrichment and display results.
 - **Supabase** – user authentication and workspace storage.
 - **Workspace Management** – create and manage multiple research configurations with custom data points, sources, and analysis settings.
 - **TypeScript** – Consumes core library types.
@@ -240,7 +240,7 @@ The frontend application uses Supabase for user authentication and workspace man
 This monorepo contains two main packages, each with its own README that provides a deeper look into architecture and usage:
 
 - **[Mira AI Library](./packages/mira-ai/README.md)** — Node.js/TypeScript library with agents, services, and orchestration logic.
-- **[Mira Frontend](./apps/mira-frontend/README.md)** — Next.js application with workspace management for running research and visualizing results.
+- **[Mira Frontend](./apps/mira-frontend/README.md)** — Next.js application with workspace management for running enrichment and visualizing results.
 
 ## AI-Assisted Development
 

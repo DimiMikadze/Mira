@@ -1,6 +1,6 @@
 # Mira AI Library
 
-Mira AI is an agentic AI library that automates company research with configurable data points and intelligent source selection. It features smart early termination and can be integrated into applications, pipelines, or used with the [complete frontend application](../../apps/mira-frontend/README.md).
+Mira AI is an agentic AI library that automates company data enrichment with configurable data points and intelligent source selection. It features smart early termination and can be integrated into applications, pipelines, or used with the [complete frontend application](../../apps/mira-frontend/README.md).
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Mira AI is an agentic AI library that automates company research with configurab
 - **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn, and Google Search (landing page is always analyzed)
 - **Smart Early Termination** – Automatically stops when all data points reach confidence thresholds
 - **Confidence-Based Merging** – Higher confidence scores take precedence when merging data
-- **Real-time Progress Events** – Live updates throughout the research process
+- **Real-time Progress Events** – Live updates throughout the enrichment process
 - **Company Analysis** – Optional executive summary generation and company criteria fit scoring
 - **Outreach Generation** – AI-powered personalized LinkedIn and email outreach based on enriched company data
 
@@ -94,7 +94,7 @@ Generate personalized LinkedIn and email outreach messages based on enriched com
 import { generateOutreach } from 'mira-ai';
 
 const outreachResult = await generateOutreach(
-  enrichedCompany, // EnrichedCompany from research result
+  enrichedCompany, // EnrichedCompany from enrichment result
   {
     linkedin: true, // Generate LinkedIn messages
     email: true, // Generate email messages
