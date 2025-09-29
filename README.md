@@ -14,7 +14,7 @@
 </div>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=z8HdHOMvoNY">
+  <a href="https://www.youtube.com/watch?v=NPTLzECkBT8">
     <img src="https://img.shields.io/badge/Watch%20Demo%20Video-red?style=for-the-badge&logo=youtube" />
   </a>
 </p>
