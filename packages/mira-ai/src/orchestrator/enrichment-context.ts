@@ -8,6 +8,7 @@ import type { EnrichmentConfig, CustomDataPoint, Analysis } from '../types/compa
  */
 export interface EnrichmentContext {
   url: string;
+  linkedinUrl?: string;
   startTime: number;
   minimumConfidenceThreshold: number;
   dataPoints: CustomDataPoint[];
@@ -38,6 +39,7 @@ export interface MiraEnrichmentOptions {
   onProgress?: ProgressCallback;
   enrichmentConfig?: EnrichmentConfig;
   minimumConfidenceThreshold?: number;
+  linkedinUrl?: string;
 }
 
 /**
@@ -81,7 +83,12 @@ export const initializeEnrichmentContext = (
   validateApiKeys(config);
   setupEnvironment(config);
 
-  const { onProgress, enrichmentConfig, minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD } = options || {};
+  const {
+    onProgress,
+    enrichmentConfig,
+    minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD,
+    linkedinUrl,
+  } = options || {};
 
   const sourcesConfig = createSourcesConfig(enrichmentConfig);
   const analysisConfig = enrichmentConfig?.analysis;
@@ -91,6 +98,7 @@ export const initializeEnrichmentContext = (
 
   return {
     url,
+    linkedinUrl,
     startTime: Date.now(),
     minimumConfidenceThreshold,
     dataPoints,

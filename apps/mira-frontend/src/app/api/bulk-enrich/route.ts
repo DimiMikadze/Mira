@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       .eq('id', workspaceId);
 
     // Process companies and wait for completion
-    const updatedWorkspace = await processCompanies(workspaceId, csvFileUrl, workspace);
+    const updatedWorkspace = await processCompanies(workspaceId, csvFileUrl, workspace, csvMapping);
 
     return NextResponse.json({
       success: true,
@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
 async function processCompanies(
   workspaceId: string,
   csvFileUrl: string,
-  workspace: Database['public']['Tables']['Workspace']['Row']
+  workspace: Database['public']['Tables']['Workspace']['Row'],
+  csvMapping: BulkEnrichRequest['csvMapping']
 ): Promise<Database['public']['Tables']['Workspace']['Row']> {
   const supabase = await createSupabaseServerClient();
 
@@ -111,8 +112,8 @@ async function processCompanies(
     // Build enrichment config from workspace
     const enrichmentConfig = {
       dataPoints: Array.isArray(workspace.datapoints) ? (workspace.datapoints as unknown as CustomDataPoint[]) : [],
-      dataSources: {
-        website: workspace.source_crawl,
+      sources: {
+        crawl: workspace.source_crawl,
         google: workspace.source_google,
         linkedin: workspace.source_linkedin,
       },
@@ -136,7 +137,8 @@ async function processCompanies(
     const promises = companies.map((company, index) =>
       queue.add(async () => {
         try {
-          const domain = company.domain || company.Domain;
+          const domain = csvMapping.domain ? company[csvMapping.domain] : company.domain || company.Domain;
+          const companyLinkedInURL = csvMapping.companyLinkedInURL ? company[csvMapping.companyLinkedInURL] : undefined;
           console.info(`Processing company ${index + 1}/${totalCompanies}: ${domain}`);
 
           console.info(`Processing company ${index + 1}/${totalCompanies}: ${domain}`);
@@ -152,6 +154,7 @@ async function processCompanies(
           // Get enrichment result
           const enrichmentResult = await researchCompany(domain, config, {
             enrichmentConfig,
+            ...(companyLinkedInURL ? { linkedinUrl: companyLinkedInURL } : {}),
           });
 
           // Generate outreach if configured

@@ -125,7 +125,7 @@ export const executeLinkedInFlow = async (
 
   // Step 3: LinkedIn Agent (if enabled and available)
   if (context.sourcesConfig.linkedin) {
-    const linkedInUrl = findLinkedInCompanyUrl(discoveryResult.socialMediaLinks);
+    const linkedInUrl = context.linkedinUrl ?? findLinkedInCompanyUrl(discoveryResult.socialMediaLinks);
 
     if (linkedInUrl) {
       try {
