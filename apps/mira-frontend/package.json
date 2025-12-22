@@ -34,7 +34,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.539.0",
     "mira-ai": "file:../../packages/mira-ai",
-    "next": "15.4.6",
+    "next": "15.4.10",
     "p-queue": "^8.1.1",
     "papaparse": "^5.5.3",
     "react": "19.1.0",
