@@ -1,5 +1,5 @@
 import { Agent, run } from '@openai/agents';
-import { AGENT_CONFIGS, MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/agent-config.js';
+import { AGENT_CONFIGS, MINIMUM_CONFIDENCE_THRESHOLD, LIMIT_INTERNAL_PAGES } from '../constants/agent-config.js';
 import { scrape } from '../services/scraper.js';
 import { createDataPointsSchema, DataPoint, CustomDataPoint } from '../types/company.js';
 import { InternalPageType, DiscoveryOutput } from '../types/agent.js';
@@ -24,7 +24,10 @@ const createInternalPageAgent = (pageType: InternalPageType, dataPointKeys: stri
   return new Agent({
     name: `${pageType} Page Extraction Agent`,
     model: AGENT_CONFIGS.internalPages.model,
-    modelSettings: { temperature: AGENT_CONFIGS.internalPages.temperature },
+    modelSettings:
+      AGENT_CONFIGS.internalPages.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.internalPages.temperature }
+        : undefined,
     outputType: createDataPointsSchema(dataPointKeys),
     instructions: INTERNAL_PAGE_AGENT_INSTRUCTIONS,
   });
@@ -152,7 +155,8 @@ export const runInternalPagesAgent = async (input: DiscoveryOutput, dataPoints: 
     const entries = Object.entries(input.internalPages || {}) as [InternalPageType, string | null | undefined][];
     const targets = entries
       .filter(([, url]) => typeof url === 'string' && !!url)
-      .map(([pageType, url]) => ({ pageType, url: url as string }));
+      .map(([pageType, url]) => ({ pageType, url: url as string }))
+      .slice(0, LIMIT_INTERNAL_PAGES);
 
     if (targets.length === 0) {
       console.info('[InternalPagesAgent] no targets — nothing to do');

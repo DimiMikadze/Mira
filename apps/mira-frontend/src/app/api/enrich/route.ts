@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
               };
 
               outreachResult = await generateOutreach(
-                result.enrichedCompany,
+                JSON.stringify(result.enrichedCompany),
                 outreachConfig,
                 (type: string, message?: string) => sendEvent(type, message)
               );

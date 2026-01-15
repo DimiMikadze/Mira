@@ -161,7 +161,7 @@ async function processCompanies(
           let outreachResult = null;
           if (outreachConfig && enrichmentResult.enrichedCompany) {
             try {
-              outreachResult = await generateOutreach(enrichmentResult.enrichedCompany, outreachConfig);
+              outreachResult = await generateOutreach(JSON.stringify(enrichmentResult.enrichedCompany), outreachConfig);
             } catch (outreachError) {
               console.error('Outreach generation failed:', outreachError);
             }
@@ -179,23 +179,24 @@ async function processCompanies(
               if (key === 'socialMediaLinks' && Array.isArray(value)) {
                 flattenedData[key] = value.join(', ');
               } else if (value && typeof value === 'object' && 'content' in value) {
-                flattenedData[key] = value.content;
+                flattenedData[key] = String((value as { content: string }).content);
               } else if (typeof value === 'string') {
                 flattenedData[key] = value;
               }
             });
           }
 
-          // Add company analysis data
           if (enrichmentResult.companyAnalysis) {
             flattenedData.executiveSummary = enrichmentResult.companyAnalysis.executiveSummary;
-            if ('FitScore' in enrichmentResult.companyAnalysis) {
+            if (
+              'FitScore' in enrichmentResult.companyAnalysis &&
+              enrichmentResult.companyAnalysis.FitScore !== undefined
+            ) {
               flattenedData.FitScore = enrichmentResult.companyAnalysis.FitScore.toString();
-              flattenedData.FitReasoning = enrichmentResult.companyAnalysis.FitReasoning;
+              flattenedData.FitReasoning = enrichmentResult.companyAnalysis.FitReasoning || '';
             }
           }
 
-          // Add outreach data (only if generated)
           if (outreachResult) {
             if (outreachResult.linkedin) {
               if (outreachResult.linkedin.connection_note)
@@ -215,9 +216,8 @@ async function processCompanies(
             }
           }
 
-          // Add execution metadata
           if (enrichmentResult.executionTime) {
-            flattenedData.executionTime = enrichmentResult.executionTime;
+            flattenedData.executionTime = enrichmentResult.executionTime.toString();
           }
           if (enrichmentResult.sources?.length) {
             flattenedData.sources = enrichmentResult.sources.join(', ');
@@ -266,11 +266,11 @@ async function processCompanies(
       .select()
       .single();
 
-    console.info(`Bulk enrichment completed for workspace ${workspaceId}`);
+      console.info(`Bulk enrichment completed for workspace ${workspaceId}`);
     return updatedWorkspace!;
   } catch (error) {
     console.error('Bulk enrichment failed:', error);
-
+    
     // Update workspace with error
     await supabase
       .from('Workspace')

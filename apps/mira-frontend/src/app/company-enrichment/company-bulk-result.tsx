@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Loader2, Download, FileText, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import type { EnrichedCompany, CompanyAnalysis as CompanyAnalysisType, DataPoint } from 'mira-ai/types';
+import type { EnrichedCompany, CompanyAnalysis as CompanyAnalysisType } from 'mira-ai/types';
 import type { OutreachResult } from 'mira-ai';
 import CompanyAnalysis from './company-analysis';
 import CompanyDataPoints from './company-data-points';
@@ -16,9 +16,10 @@ interface CompanyBulkResultProps {
   csvLoading: boolean;
   csvError: string;
   csvUrl?: string;
+  csvMapping?: { domain?: string | null } | null;
 }
 
-const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: CompanyBulkResultProps) => {
+const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl, csvMapping }: CompanyBulkResultProps) => {
   const [selectedCompany, setSelectedCompany] = useState<Record<string, string> | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string>('');
@@ -30,9 +31,35 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: Company
     sources: string[];
   } | null>(null);
 
+  const resolveDomain = (company: Record<string, string>) => {
+    const normalize = (value: unknown) => (typeof value === 'string' ? value.trim() : '');
+
+    // 1) Try mapped column (case-sensitive, then case-insensitive)
+    if (csvMapping?.domain) {
+      const direct = normalize(company[csvMapping.domain]);
+      if (direct) return direct;
+
+      const lowerKey = csvMapping.domain.toLowerCase();
+      const matchedKey = Object.keys(company).find((key) => key.toLowerCase() === lowerKey);
+      if (matchedKey) {
+        const value = normalize(company[matchedKey]);
+        if (value) return value;
+      }
+    }
+
+    // 2) Common fallback keys
+    const fallbackKeys = ['domain', 'Domain', 'website', 'Website', 'url', 'URL'];
+    for (const key of fallbackKeys) {
+      const value = normalize(company[key]);
+      if (value) return value;
+    }
+
+    return '';
+  };
+
   // Load detailed company information from CSV fields
   const loadCompanyDetails = (company: Record<string, string>) => {
-    const domain = company.Domain || company.domain;
+    const domain = resolveDomain(company);
     if (!domain) {
       setDetailsError('No domain found for this company');
       return;
@@ -206,7 +233,7 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: Company
             <FileText className='w-6 h-6 text-blue-500' />
             <div>
               <p className='text-sm text-gray-600'>
-                <span className='font-medium'>{selectedCompany.Domain || selectedCompany.domain}</span>
+                <span className='font-medium'>{resolveDomain(selectedCompany)}</span>
               </p>
             </div>
           </div>
@@ -298,7 +325,7 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: Company
         </div>
         <div className='divide-y divide-gray-200'>
           {csvResults.map((company, index) => {
-            const domain = company.Domain || company.domain;
+            const domain = resolveDomain(company);
             const status = company.status;
 
             return (
@@ -311,7 +338,7 @@ const CompanyBulkResult = ({ csvResults, csvLoading, csvError, csvUrl }: Company
                   <div className='flex-1'>
                     <div className='flex items-center space-x-3'>
                       <div>
-                        <p className='text-sm text-blue-600 hover:text-blue-800'>{domain}</p>
+                        <p className='text-sm text-blue-600 hover:text-blue-800'>{domain || 'Unknown domain'}</p>
                       </div>
                     </div>
                   </div>
