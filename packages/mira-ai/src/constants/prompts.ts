@@ -1,3 +1,4 @@
+import { LIMIT_GOOGLE_QUERIES, LIMIT_INTERNAL_PAGES } from '../constants/agent-config.js';
 import { EnrichedCompany, CustomDataPoint } from '../types/company.js';
 
 /**
@@ -109,7 +110,8 @@ Rules for internal page selection:
 4. Give each selected page a descriptive name that indicates what type of information it contains
 5. Return empty object for internalPages if no relevant internal pages are found
 6. Prioritize pages that are most likely to contain multiple data points
-7. Do not include the main landing page URL in your response`
+7. Do not include the main landing page URL in your response
+8. Select AT MOST ${LIMIT_INTERNAL_PAGES} internal pages.`
     : '';
 
   // Only include Google queries section if Google search is enabled
@@ -120,20 +122,21 @@ Generate effective Google search queries to find information about the Data Poin
 
 Guidelines for Google queries:
 1. Extract ONLY the core company name from "${companyName}" - ignore taglines, descriptions, and separators (·, |, -, :)
-2. Create efficient queries that target MULTIPLE related data points in a single search
-3. Group related data points together (e.g., leadership + team size, funding + valuation)
-4. Use site exclusions (-site:${domain}) for external information like press coverage
-5. Focus on recent information when applicable (add "recent" or year)
-6. Use OR operators for alternative terms and related concepts
-7. Keep queries concise but comprehensive
-8. Aim for 3-5 total queries maximum that cover all needed data points
+2. ALWAYS exclude the company's own website using -site:${domain} in every query
+3. Create focused, specific queries - each query should target ONE primary data point or closely related pair
+4. Limit OR operators to 2-3 alternatives maximum per query
+5. Add "recent" or year for time-sensitive information
+6. Keep queries simple and natural - avoid keyword stuffing
+7. Generate AT MOST ${LIMIT_GOOGLE_QUERIES} DISTINCT queries
+8. Each query must be unique - no duplicates or near-duplicates
+9. Before finalizing, verify all queries are meaningfully different from each other
 
-Examples of efficient multi-target queries:
-- Company info: "[CompanyName] about company headquarters location team size"
-- Leadership: "[CompanyName] CEO founder leadership team executives"
-- Business: "[CompanyName] funding valuation revenue business model"
-- News/Growth: "[CompanyName] (news OR press OR announcement) recent -site:${domain}"
-- Partnerships: "[CompanyName] partnerships clients customers collaborations"
+Examples of focused queries:
+- "[CompanyName] headquarters location -site:${domain}"
+- "[CompanyName] funding Series A OR Series B recent -site:${domain}"
+- "[CompanyName] news OR press recent -site:${domain}"
+- "[CompanyName] hiring sales OR business development -site:${domain}"
+- "[CompanyName] customers OR clients partnerships -site:${domain}"
 
 IMPORTANT: If the company name contains separators or descriptions, extract only the actual company name.`
     : '';
@@ -410,11 +413,11 @@ export const createCompanyAnalysisPrompt = (
   const rubric = hasCompanyCriteria
     ? `
 Scoring rubric (0-10):
-0-2: Poor fit (industry/size/geography/needs mismatch)
-3-4: Weak fit (some overlap, multiple mismatches)
-5-6: Moderate fit (some overlap, some mismatches)
-7-8: Strong fit (most company criteria met)
-9-10: Excellent fit (near-perfect match)
+0-2: Poor fit (major misalignment with criteria)
+3-4: Weak fit (some alignment, significant gaps)
+5-6: Moderate fit (partial alignment, some gaps)
+7-8: Strong fit (strong alignment, minor gaps)
+9-10: Excellent fit (near-perfect alignment)
 `
     : '';
 

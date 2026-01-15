@@ -1,6 +1,5 @@
 import { Agent, run } from '@openai/agents';
 import { z } from 'zod';
-import type { EnrichedCompany } from '../types/company.js';
 import type { ProgressCallback } from '../orchestrator/progress-manager.js';
 import { OutreachConfig, OutreachResult, LinkedInOutreachSchema, EmailOutreachSchema } from '../types/outreach.js';
 import { PROGRESS_EVENTS } from '../constants/progress.js';
@@ -9,7 +8,7 @@ import { PROGRESS_EVENTS } from '../constants/progress.js';
  * Generate personalized outreach messages using OpenAI GPT-4o with structured output
  */
 export async function generateOutreach(
-  enrichedCompany: EnrichedCompany,
+  companyInfo: string,
   outreachConfig: OutreachConfig,
   onProgress?: ProgressCallback
 ): Promise<OutreachResult> {
@@ -34,7 +33,7 @@ export async function generateOutreach(
     });
 
     // Create prompt for the requested outreach types
-    const prompt = createOutreachPrompt(enrichedCompany, outreachConfig);
+    const prompt = createOutreachPrompt(companyInfo, outreachConfig);
 
     const response = await run(agent, prompt);
     const result = (response?.finalOutput || {}) as OutreachResult;
@@ -70,7 +69,7 @@ function createDynamicSchema(config: OutreachConfig) {
 /**
  * Create unified prompt based on outreach configuration
  */
-function createOutreachPrompt(enrichedCompany: EnrichedCompany, config: OutreachConfig): string {
+function createOutreachPrompt(companyInfo: string, config: OutreachConfig): string {
   const outreachTypes = [];
 
   if (config.linkedin) {
@@ -81,21 +80,12 @@ function createOutreachPrompt(enrichedCompany: EnrichedCompany, config: Outreach
     outreachTypes.push('Email outreach (initial email with subject/message and follow-up message)');
   }
 
-  // Format company data as simple name: content pairs
-  const companyData = Object.entries(enrichedCompany)
-    .filter(([key]) => key !== 'socialMediaLinks')
-    .map(([key, value]) => `${key}: ${(value as { content?: string })?.content || value}`)
-    .join('\n');
+  const companyData = companyInfo ? `Company Data: ${companyInfo}` : '';
 
   return `Generate personalized ${outreachTypes.join(' and ')} based on the company research data below.
 
 Company Data:
 ${companyData}
-
-Requirements:
-- Keep message bodies under 150 words
-- For LinkedIn: connection_note under 300 chars, acceptance_message under 500 chars
-- For InMail: compelling subject and detailed message under 1000 chars
 
 Primary Instructions:
 ${config.prompt}

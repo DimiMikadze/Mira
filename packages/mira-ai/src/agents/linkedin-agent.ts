@@ -40,7 +40,10 @@ export const createLinkedInAgent = (keys: string[]) =>
   new Agent({
     name: 'LinkedIn Agent',
     model: AGENT_CONFIGS.linkedin.model,
-    modelSettings: { temperature: AGENT_CONFIGS.linkedin.temperature },
+    modelSettings:
+      AGENT_CONFIGS.linkedin.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.linkedin.temperature }
+        : undefined,
     outputType: createDataPointsSchema(keys),
     instructions: LINKEDIN_AGENT_INSTRUCTIONS,
   });

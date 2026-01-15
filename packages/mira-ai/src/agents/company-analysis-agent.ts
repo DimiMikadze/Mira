@@ -50,7 +50,10 @@ export const createCompanyAnalysisAgentWithCriteria = () =>
   new Agent({
     name: 'Company Analysis Agent with Company Criteria',
     model: AGENT_CONFIGS.companyAnalysis.model,
-    modelSettings: { temperature: AGENT_CONFIGS.companyAnalysis.temperature },
+    modelSettings:
+      AGENT_CONFIGS.companyAnalysis.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.companyAnalysis.temperature }
+        : undefined,
     outputType: CompanyAnalysisWithCriteriaSchema,
     instructions: COMPANY_ANALYSIS_AGENT_WITH_COMPANY_CRITERIA_INSTRUCTIONS,
   });
@@ -62,7 +65,10 @@ export const createCompanyAnalysisAgentWithoutCriteria = () =>
   new Agent({
     name: 'Company Analysis Agent',
     model: AGENT_CONFIGS.companyAnalysis.model,
-    modelSettings: { temperature: AGENT_CONFIGS.companyAnalysis.temperature },
+    modelSettings:
+      AGENT_CONFIGS.companyAnalysis.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.companyAnalysis.temperature }
+        : undefined,
     outputType: CompanyAnalysisWithoutCriteriaSchema,
     instructions: COMPANY_ANALYSIS_AGENT_WITHOUT_COMPANY_CRITERIA_INSTRUCTIONS,
   });

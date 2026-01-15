@@ -16,7 +16,7 @@ import {
   type GoogleSearchSnippet,
 } from '../constants/prompts.js';
 import { createDataPointsWithSourceSchema, CustomDataPoint, DataPoint } from '../types/company.js';
-import { AGENT_CONFIGS } from '../constants/agent-config.js';
+import { AGENT_CONFIGS, LIMIT_GOOGLE_QUERIES } from '../constants/agent-config.js';
 
 /** Input expected by the Google Search Agent */
 export interface GoogleSearchAgentInput {
@@ -93,7 +93,10 @@ export const createGoogleSearchAgent = (keys: string[]) =>
   new Agent({
     name: 'Google Search Agent',
     model: AGENT_CONFIGS.googleSearch.model,
-    modelSettings: { temperature: AGENT_CONFIGS.googleSearch.temperature },
+    modelSettings:
+      AGENT_CONFIGS.googleSearch.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.googleSearch.temperature }
+        : undefined,
     outputType: createDataPointsWithSourceSchema(keys),
     instructions: GOOGLE_SEARCH_AGENT_INSTRUCTIONS,
   });
@@ -106,7 +109,7 @@ export const runGoogleSearchAgent = async (input: GoogleSearchAgentInput): Promi
       return { success: false, queries: [], resultsByQuery: {}, error: 'invalid input' };
     }
 
-    const queries = selectQueriesToRun(needs, googleQueries, baseDataPoints);
+    const queries = selectQueriesToRun(needs, googleQueries, baseDataPoints).slice(0, LIMIT_GOOGLE_QUERIES);
 
     // If no queries are needed (all data points have high confidence), skip Google search
     if (queries.length === 0) {

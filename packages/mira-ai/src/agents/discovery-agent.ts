@@ -30,7 +30,10 @@ const createDiscoveryDataPointsAgent = (dataPoints: CustomDataPoint[]) => {
   return new Agent({
     name: 'Discovery Data Points Agent',
     model: AGENT_CONFIGS.discoveryDataPoints.model,
-    modelSettings: { temperature: AGENT_CONFIGS.discoveryDataPoints.temperature },
+    modelSettings:
+      AGENT_CONFIGS.discoveryDataPoints.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.discoveryDataPoints.temperature }
+        : undefined,
     outputType: dataPointsSchema,
     instructions: DISCOVERY_DATA_POINTS_AGENT_INSTRUCTIONS,
   });
@@ -41,7 +44,10 @@ const createDiscoveryPagesAndQueriesAgent = () => {
   return new Agent({
     name: 'Discovery Pages and Queries Agent',
     model: AGENT_CONFIGS.discoveryInternalLinks.model,
-    modelSettings: { temperature: AGENT_CONFIGS.discoveryInternalLinks.temperature },
+    modelSettings:
+      AGENT_CONFIGS.discoveryInternalLinks.temperature !== undefined
+        ? { temperature: AGENT_CONFIGS.discoveryInternalLinks.temperature }
+        : undefined,
     outputType: DiscoveryPagesAndQueriesSchema,
     instructions: DISCOVERY_PAGES_AND_QUERIES_AGENT_INSTRUCTIONS,
   });

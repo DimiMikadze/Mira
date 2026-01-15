@@ -399,6 +399,7 @@ const CompanyEnrichment = ({ workspaces, authUser }: CompanyEnrichmentProps) => 
             csvLoading={csvLoading}
             csvError={csvError}
             csvUrl={currentWorkspace.generated_csv_file_url || undefined}
+            csvMapping={(currentWorkspace.csv_mapping as { domain?: string | null } | null) || null}
           />
         )}
 

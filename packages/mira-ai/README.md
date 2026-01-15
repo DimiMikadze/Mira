@@ -94,7 +94,7 @@ Generate personalized LinkedIn and email outreach messages based on enriched com
 import { generateOutreach } from 'mira-ai';
 
 const outreachResult = await generateOutreach(
-  enrichedCompany, // EnrichedCompany from enrichment result
+  companyInfo,
   {
     linkedin: true, // Generate LinkedIn messages
     email: true, // Generate email messages
