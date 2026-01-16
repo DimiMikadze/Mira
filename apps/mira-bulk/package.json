@@ -20,8 +20,8 @@
     "start": "node index.ts"
   },
   "dependencies": {
-    "mira-ai": "*",
     "@supabase/supabase-js": "^2.90.1",
+    "mira-ai": "^2.1.6",
     "p-queue": "^8.1.1",
     "papaparse": "^5.5.3"
   },
