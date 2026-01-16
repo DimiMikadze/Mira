@@ -122,7 +122,14 @@ const exportResults = async (results: Record<string, string>[], workspaceId: str
 };
 
 const run = async () => {
+  console.info(`📁 DB folder: ${process.env.NODE_ENV === 'production' ? '/data' : './data'}`);
+  console.info(`📁 NODE_ENV: ${process.env.NODE_ENV}`);
+
   const workspace = await getWorkspace(WORKSPACE_ID);
+  if (workspace.run_status === 'done') {
+    console.info('Job already completed. Exiting.');
+    return;
+  }
   console.info(`==========\n Workspace loaded: ${JSON.stringify(workspace, null, 2)} \n==========`);
 
   const companies = await fetchCompaniesCSV(COMPANIES_CSV_URL);
@@ -259,4 +266,6 @@ try {
 } finally {
   const executionTimeMin = ((performance.now() - startTime) / 60000).toFixed(2);
   console.info(`==========\n Total execution time: ${executionTimeMin} \n==========`);
+  console.info('Done. Keeping process alive.');
+  setInterval(() => {}, 1 << 30);
 }
