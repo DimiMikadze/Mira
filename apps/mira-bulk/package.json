@@ -16,7 +16,8 @@
   },
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env index.ts"
+    "dev": "node --env-file=.env index.ts",
+    "start": "node index.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
