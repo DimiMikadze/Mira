@@ -111,7 +111,7 @@ Rules for internal page selection:
 5. Return empty object for internalPages if no relevant internal pages are found
 6. Prioritize pages that are most likely to contain multiple data points
 7. Do not include the main landing page URL in your response
-8. Select AT MOST ${LIMIT_INTERNAL_PAGES} internal pages.`
+8. Select AT MOST ${LIMIT_INTERNAL_PAGES} internal pages. If fewer pages contain the needed information, select fewer.`
     : '';
 
   // Only include Google queries section if Google search is enabled
@@ -127,7 +127,7 @@ Guidelines for Google queries:
 4. Limit OR operators to 2-3 alternatives maximum per query
 5. Add "recent" or year for time-sensitive information
 6. Keep queries simple and natural - avoid keyword stuffing
-7. Generate AT MOST ${LIMIT_GOOGLE_QUERIES} DISTINCT queries
+7. Generate AT MOST ${LIMIT_GOOGLE_QUERIES} DISTINCT queries. If fewer queries are sufficient, generate fewer.
 8. Each query must be unique - no duplicates or near-duplicates
 9. Before finalizing, verify all queries are meaningfully different from each other
 

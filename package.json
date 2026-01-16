@@ -16,9 +16,10 @@
     "dev:mira-frontend": "npm run build:mira-ai && npm run dev --workspace=mira-frontend",
     "clean": "npm run clean --workspace=mira-ai && rimraf packages/*/node_modules apps/*/node_modules packages/*/package-lock.json apps/*/package-lock.json node_modules package-lock.json",
     "db:migrate": "supabase db push",
-    "generate-types": "supabase gen types typescript --project-id vcoabomphfvqiexopjjh > ./apps/mira-frontend/src/constants/database.types.ts"
+    "generate-types": "supabase gen types typescript --project-id vcoabomphfvqiexopjjh | tee ./apps/mira-frontend/src/constants/database.types.ts ./apps/mira-bulk/database.types.ts > /dev/null"
   },
   "devDependencies": {
+    "@types/node": "^25.0.9",
     "rimraf": "^5.0.5",
     "typescript": "^5"
   },

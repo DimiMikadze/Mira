@@ -1,0 +1,32 @@
+{
+  "name": "mira-bulk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bulk company research processor using mira-ai",
+  "license": "MIT",
+  "author": "Dimi Mikadze <hi@dimimikadze.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dimimikadze/mira.git",
+    "directory": "apps/mira-bulk"
+  },
+  "homepage": "https://github.com/dimimikadze/mira/tree/main/apps/mira-bulk#readme",
+  "bugs": {
+    "url": "https://github.com/dimimikadze/mira/issues"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.90.1",
+    "p-queue": "^8.1.1",
+    "papaparse": "^5.5.3"
+  },
+  "devDependencies": {
+    "@types/papaparse": "^5.5.2"
+  },
+  "engines": {
+    "node": ">=24.5.0"
+  }
+}
