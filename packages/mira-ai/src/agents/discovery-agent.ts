@@ -84,7 +84,9 @@ export const runDiscoveryAgent = async (
   url: string,
   requestedDataPoints: CustomDataPoint[],
   includeGoogleQueries: boolean = false,
-  includeCrawl: boolean = false
+  includeCrawl: boolean = false,
+  maxInternalPages?: number,
+  maxGoogleQueries?: number
 ) => {
   try {
     console.info(`[DiscoveryAgent] Discovering website structure and content: ${url}`);
@@ -165,7 +167,9 @@ export const runDiscoveryAgent = async (
           links,
           neededDataPoints, // Only pass data points that need improvement
           includeGoogleQueries,
-          includeCrawl
+          includeCrawl,
+          maxInternalPages,
+          maxGoogleQueries
         );
 
         discoveryPagesAndQueriesResponse = await run(discoveryPagesAndQueriesAgent, discoveryPagesAndQueriesPrompt);
@@ -182,10 +186,11 @@ export const runDiscoveryAgent = async (
       googleQueries = pagesAndQueries.googleQueries || {};
     }
 
+    const totalGoogleQueries = Object.values(googleQueries).flat().length;
     console.info(
       `[DiscoveryAgent] Success: ${Object.keys(dataPoints).length} data points, ${
         Object.keys(internalPages).length
-      } internal pages, ${Object.keys(googleQueries).length} Google query groups`
+      } internal pages, ${totalGoogleQueries} Google queries`
     );
 
     return {

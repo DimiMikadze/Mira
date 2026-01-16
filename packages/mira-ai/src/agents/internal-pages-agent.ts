@@ -146,7 +146,11 @@ const extractFromInternalPage = async (
  * Processes all discovered internal pages in parallel and merges
  * the extracted data with existing discovery results.
  */
-export const runInternalPagesAgent = async (input: DiscoveryOutput, dataPoints: CustomDataPoint[]) => {
+export const runInternalPagesAgent = async (
+  input: DiscoveryOutput,
+  dataPoints: CustomDataPoint[],
+  maxInternalPages: number = LIMIT_INTERNAL_PAGES
+) => {
   try {
     console.info('[InternalPagesAgent] begin run');
     const baseDataPoints = { ...input.dataPoints };
@@ -156,7 +160,7 @@ export const runInternalPagesAgent = async (input: DiscoveryOutput, dataPoints: 
     const targets = entries
       .filter(([, url]) => typeof url === 'string' && !!url)
       .map(([pageType, url]) => ({ pageType, url: url as string }))
-      .slice(0, LIMIT_INTERNAL_PAGES);
+      .slice(0, maxInternalPages);
 
     if (targets.length === 0) {
       console.info('[InternalPagesAgent] no targets — nothing to do');

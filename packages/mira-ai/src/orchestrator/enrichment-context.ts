@@ -1,6 +1,6 @@
 import { createProgressReporter, type ProgressCallback } from './progress-manager.js';
 import { createSourcesManager } from './sources-manager.js';
-import { MINIMUM_CONFIDENCE_THRESHOLD } from '../constants/index.js';
+import { MINIMUM_CONFIDENCE_THRESHOLD, LIMIT_INTERNAL_PAGES, LIMIT_GOOGLE_QUERIES } from '../constants/index.js';
 import type { EnrichmentConfig, CustomDataPoint, Analysis } from '../types/company.js';
 
 /**
@@ -11,6 +11,8 @@ export interface EnrichmentContext {
   linkedinUrl?: string;
   startTime: number;
   minimumConfidenceThreshold: number;
+  maxInternalPages: number;
+  maxGoogleQueries: number;
   dataPoints: CustomDataPoint[];
   sourcesConfig: {
     crawl: boolean;
@@ -39,6 +41,8 @@ export interface MiraEnrichmentOptions {
   onProgress?: ProgressCallback;
   enrichmentConfig?: EnrichmentConfig;
   minimumConfidenceThreshold?: number;
+  maxInternalPages?: number;
+  maxGoogleQueries?: number;
   linkedinUrl?: string;
 }
 
@@ -87,6 +91,8 @@ export const initializeEnrichmentContext = (
     onProgress,
     enrichmentConfig,
     minimumConfidenceThreshold = MINIMUM_CONFIDENCE_THRESHOLD,
+    maxInternalPages = LIMIT_INTERNAL_PAGES,
+    maxGoogleQueries = LIMIT_GOOGLE_QUERIES,
     linkedinUrl,
   } = options || {};
 
@@ -101,6 +107,8 @@ export const initializeEnrichmentContext = (
     linkedinUrl,
     startTime: Date.now(),
     minimumConfidenceThreshold,
+    maxInternalPages,
+    maxGoogleQueries,
     dataPoints,
     sourcesConfig,
     analysisConfig,

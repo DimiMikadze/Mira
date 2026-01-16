@@ -88,7 +88,9 @@ export const createDiscoveryPagesAndQueriesPrompt = (
   links: Array<{ href: string; text: string }>,
   dataPoints: CustomDataPoint[],
   includeGoogleQueries: boolean,
-  includeCrawl: boolean
+  includeCrawl: boolean,
+  maxInternalPages: number = LIMIT_INTERNAL_PAGES,
+  maxGoogleQueries: number = LIMIT_GOOGLE_QUERIES
 ) => {
   const dataPointsList = dataPoints.map((dp) => `- ${dp.name}: ${dp.description}`).join('\n');
 
@@ -111,7 +113,7 @@ Rules for internal page selection:
 5. Return empty object for internalPages if no relevant internal pages are found
 6. Prioritize pages that are most likely to contain multiple data points
 7. Do not include the main landing page URL in your response
-8. Select AT MOST ${LIMIT_INTERNAL_PAGES} internal pages. If fewer pages contain the needed information, select fewer.`
+8. Select AT MOST ${maxInternalPages} internal pages. If fewer pages contain the needed information, select fewer.`
     : '';
 
   // Only include Google queries section if Google search is enabled
@@ -127,13 +129,14 @@ Guidelines for Google queries:
 4. Limit OR operators to 2-3 alternatives maximum per query
 5. Add "recent" or year for time-sensitive information
 6. Keep queries simple and natural - avoid keyword stuffing
-7. Generate AT MOST ${LIMIT_GOOGLE_QUERIES} DISTINCT queries. If fewer queries are sufficient, generate fewer.
+7. Generate AT MOST ${maxGoogleQueries} DISTINCT queries. If fewer queries are sufficient, generate fewer.
 8. Each query must be unique - no duplicates or near-duplicates
 9. Before finalizing, verify all queries are meaningfully different from each other
 
+CRITICAL: You may only generate ${maxGoogleQueries} query/queries TOTAL across ALL data points combined. Prioritize the most important data point(s).
+
 Examples of focused queries:
 - "[CompanyName] headquarters location -site:${domain}"
-- "[CompanyName] funding Series A OR Series B recent -site:${domain}"
 - "[CompanyName] news OR press recent -site:${domain}"
 - "[CompanyName] hiring sales OR business development -site:${domain}"
 - "[CompanyName] customers OR clients partnerships -site:${domain}"

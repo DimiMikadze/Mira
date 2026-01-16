@@ -39,6 +39,7 @@ export interface GoogleSearchEnrichmentOptions {
   dataPoints: CustomDataPoint[];
   googleQueries?: Record<string, string[]>;
   confidenceThreshold?: number;
+  maxGoogleQueries?: number;
 }
 
 /**
@@ -56,11 +57,20 @@ export const runDiscoveryStep = async (
   url: string,
   dataPoints: CustomDataPoint[],
   includeGoogleQueries: boolean = false,
-  includeCrawl: boolean = false
+  includeCrawl: boolean = false,
+  maxInternalPages?: number,
+  maxGoogleQueries?: number
 ): Promise<DiscoveryStepResult> => {
   console.info(`[Orchestrator] Starting website discovery with AI agent for: ${url}`);
 
-  const discoveryAgentResult = await runDiscoveryAgent(url, dataPoints, includeGoogleQueries, includeCrawl);
+  const discoveryAgentResult = await runDiscoveryAgent(
+    url,
+    dataPoints,
+    includeGoogleQueries,
+    includeCrawl,
+    maxInternalPages,
+    maxGoogleQueries
+  );
 
   if (!discoveryAgentResult.success) {
     throw new Error(`Website discovery agent failed: ${discoveryAgentResult.error}`);
@@ -80,14 +90,15 @@ export const runDiscoveryStep = async (
  */
 export const runInternalPagesStep = async (
   discoveryResult: DiscoveryStepResult,
-  dataPoints: CustomDataPoint[]
+  dataPoints: CustomDataPoint[],
+  maxInternalPages?: number
 ): Promise<Record<string, DataPoint | undefined>> => {
   const input: DiscoveryOutput = {
     dataPoints: discoveryResult.dataPoints,
     internalPages: discoveryResult.internalPages,
   };
 
-  const internalPagesResult = await runInternalPagesAgent(input, dataPoints);
+  const internalPagesResult = await runInternalPagesAgent(input, dataPoints, maxInternalPages);
 
   if (!internalPagesResult.success) {
     throw new Error(`Internal pages agent failed: ${internalPagesResult.error}`);
@@ -170,7 +181,7 @@ export const runGoogleSearchEnrichmentStep = async (
   extracted: Record<string, DataPoint | undefined>;
   sourcesUsed: Set<string>;
 }> => {
-  const { companyName, domain, baseDataPoints, googleQueries = {}, confidenceThreshold = 3 } = options;
+  const { companyName, domain, baseDataPoints, googleQueries = {}, confidenceThreshold = 3, maxGoogleQueries } = options;
 
   // Get the data point keys we should look for from the configured data points
   const dataPointKeys = options.dataPoints.map((dp) => dp.name);
@@ -197,6 +208,7 @@ export const runGoogleSearchEnrichmentStep = async (
     dataPoints: options.dataPoints,
     googleQueries,
     baseDataPoints,
+    maxGoogleQueries,
   });
 
   if (googleResult.success && googleResult.extracted) {

@@ -29,7 +29,9 @@ export const executeDiscoveryFlow = async (
     context.url,
     context.dataPoints,
     context.sourcesConfig.google,
-    context.sourcesConfig.crawl
+    context.sourcesConfig.crawl,
+    context.maxInternalPages,
+    context.maxGoogleQueries
   );
 
   const discoveryDataPointsCount = countMeaningfulDataPoints(discoveryResult.dataPoints);
@@ -87,7 +89,11 @@ export const executeInternalPagesFlow = async (
           ', '
         )}`
       );
-      internalPagesDataPoints = await runInternalPagesStep(discoveryResult, filteredDataPoints);
+      internalPagesDataPoints = await runInternalPagesStep(
+        discoveryResult,
+        filteredDataPoints,
+        context.maxInternalPages
+      );
     }
 
     internalPagesDataPointsCount = countMeaningfulDataPoints(internalPagesDataPoints);
@@ -189,6 +195,7 @@ export const executeGoogleSearchFlow = async (
         baseDataPoints,
         dataPoints: context.dataPoints,
         googleQueries: discoveryResult.googleQueries || {},
+        maxGoogleQueries: context.maxGoogleQueries,
       });
 
       if (Object.keys(googleResult.extracted).length > 0) {

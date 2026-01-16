@@ -6,15 +6,14 @@
  * using the configured data points, sources, and analysis settings.
  */
 
-import { getWorkspace, createSupabaseAdminClient } from './supabase.ts';
+import { getWorkspace, createSupabaseAdminClient, updateWorkspace } from './supabase.ts';
 import { saveProgress, getProgress } from './db.ts';
 import Papa from 'papaparse';
 import { researchCompany, type CustomDataPoint, type EnrichmentResult } from 'mira-ai';
 import PQueue from 'p-queue';
-import fs from 'node:fs';
-import path from 'node:path';
 
 const WORKSPACE_ID = '9c782526-dd5b-40af-9ddb-d57938563c20';
+const COMPANIES_CSV_URL = 'https://vcoabomphfvqiexopjjh.supabase.co/storage/v1/object/public/CSV/companies.csv';
 
 // Stop processing after this many consecutive failures
 const CIRCUIT_BREAKER_THRESHOLD = 5;
@@ -25,10 +24,15 @@ interface CompanyRow {
 }
 
 /**
- * Parses a CSV file containing company data.
+ * Fetches and parses a CSV file from a URL.
  */
-const parseCompaniesCSV = (csvPath: string): CompanyRow[] => {
-  const csvText = fs.readFileSync(csvPath, 'utf-8');
+const fetchCompaniesCSV = async (csvUrl: string): Promise<CompanyRow[]> => {
+  const response = await fetch(csvUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch CSV: ${response.status} ${response.statusText}`);
+  }
+
+  const csvText = await response.text();
   const parseResult = Papa.parse<CompanyRow>(csvText, {
     header: true,
     skipEmptyLines: true,
@@ -82,20 +86,21 @@ const flattenEnrichmentResult = (result: EnrichmentResult, company: CompanyRow):
 };
 
 /**
- * Exports results to local CSV file and uploads to Supabase storage.
+ * Uploads results to Supabase storage.
+ * Collects all unique keys from all results to ensure consistent CSV columns.
  */
 const exportResults = async (results: Record<string, string>[], workspaceId: string): Promise<void> => {
   const validResults = results.filter(Boolean);
   if (validResults.length === 0) return;
 
-  const resultsCsv = Papa.unparse(validResults);
+  // Collect all unique keys from all results to ensure all data points become columns
+  const allKeys = new Set<string>();
+  validResults.forEach((result) => {
+    Object.keys(result).forEach((key) => allKeys.add(key));
+  });
 
-  // Save locally
-  const outputPath = path.join(import.meta.dirname, 'data', 'enriched-companies.csv');
-  fs.writeFileSync(outputPath, resultsCsv, 'utf-8');
-  console.log(`Results saved locally to ${outputPath}`);
+  const resultsCsv = Papa.unparse(validResults, { columns: Array.from(allKeys) });
 
-  // Upload to Supabase storage
   const supabase = createSupabaseAdminClient();
   const fileName = `${workspaceId}/enriched-companies-${Date.now()}.csv`;
   const { error: uploadError } = await supabase.storage.from('CSV').upload(fileName, resultsCsv, {
@@ -103,24 +108,30 @@ const exportResults = async (results: Record<string, string>[], workspaceId: str
   });
 
   if (uploadError) {
-    console.error(`Failed to upload to Supabase: ${uploadError.message}`);
-  } else {
-    const { data: publicData } = supabase.storage.from('CSV').getPublicUrl(fileName);
-    console.log(`Results uploaded to Supabase: ${publicData.publicUrl}`);
+    throw new Error(`Failed to upload to Supabase: ${uploadError.message}`);
   }
+
+  const { data: publicData } = supabase.storage.from('CSV').getPublicUrl(fileName);
+  const resultsFileUrl = publicData.publicUrl;
+  await updateWorkspace(workspaceId, {
+    run_status: 'done',
+    run_finished_at: new Date().toISOString(),
+    generated_csv_file_url: resultsFileUrl,
+  });
+  console.log(`Results uploaded to Supabase: ${resultsFileUrl}`);
 };
 
 const run = async () => {
   const workspace = await getWorkspace(WORKSPACE_ID);
-  console.log('Workspace loaded:', workspace.name);
+  console.info(`==========\n Workspace loaded: ${JSON.stringify(workspace, null, 2)} \n==========`);
 
-  const csvPath = path.join(import.meta.dirname, 'data', 'companies.csv');
-  const companies = parseCompaniesCSV(csvPath);
+  const companies = await fetchCompaniesCSV(COMPANIES_CSV_URL);
   const totalCompanies = companies.length;
-  console.log(`Found ${totalCompanies} companies to process`);
+  console.info(`Found ${totalCompanies} companies to process`);
 
-  // Rate-limit concurrent requests to avoid API throttling
-  const queue = new PQueue({ concurrency: 2 });
+  const queue = new PQueue({
+    concurrency: 4,
+  });
   const results: Record<string, string>[] = [];
 
   // Circuit breaker: stops processing after consecutive failures to avoid
@@ -165,12 +176,12 @@ const run = async () => {
         return;
       }
 
-      console.log(`Processing company ${index + 1}/${totalCompanies}: ${website}`);
-
       try {
         const enrichmentResult = await researchCompany(website, config, {
           enrichmentConfig,
           ...(linkedin ? { linkedinUrl: linkedin } : {}),
+          maxGoogleQueries: 1,
+          maxInternalPages: 5,
         });
 
         consecutiveFailures = 0; // Reset on success
@@ -185,7 +196,7 @@ const run = async () => {
           data: JSON.stringify(flattenedData),
         });
 
-        console.log(`✓ Completed ${website}`);
+        console.info(`==========\n[${index + 1}/${totalCompanies}] ${website}\n==========`);
       } catch (error) {
         consecutiveFailures++;
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -199,7 +210,7 @@ const run = async () => {
           data: JSON.stringify(company),
         });
 
-        console.error(`✗ Failed ${website}: ${errorMessage}`);
+        console.error(`==========\n[${index + 1}/${totalCompanies}] ${website} FAILED\n==========`);
 
         if (consecutiveFailures >= CIRCUIT_BREAKER_THRESHOLD) {
           circuitBreakerTriggered = true;
@@ -213,29 +224,39 @@ const run = async () => {
   );
 
   await Promise.all(promises);
+
+  console.info(`==========\n Exporting Results \n==========`);
+
   await exportResults(results, WORKSPACE_ID);
+
+  console.info(`==========\n Done. \n==========`);
 
   // Filter out empty slots from skipped jobs
   const processedCount = results.filter(Boolean).length;
 
   if (skippedCount > 0) {
-    console.log(`Skipped ${skippedCount} already-processed companies.`);
+    console.info(`Skipped ${skippedCount} already-processed companies.`);
   }
 
   if (circuitBreakerTriggered) {
-    console.log(
+    console.error(
       `Enrichment stopped early. Processed ${processedCount - skippedCount} new, ${skippedCount} skipped, ${
         totalCompanies - processedCount
       } remaining.`
     );
   } else {
-    console.log(`Completed. Processed ${processedCount - skippedCount} new, ${skippedCount} skipped.`);
+    console.info(`Completed. Processed ${processedCount - skippedCount} new, ${skippedCount} skipped.`);
   }
 };
+
+const startTime = performance.now();
 
 try {
   await run();
 } catch (err) {
   console.error('Critical crash:', err);
   process.exit(1);
+} finally {
+  const executionTimeMin = ((performance.now() - startTime) / 60000).toFixed(2);
+  console.info(`==========\n Total execution time: ${executionTimeMin} \n==========`);
 }

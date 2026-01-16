@@ -43,3 +43,32 @@ export const getWorkspace = async (id: string): Promise<WorkspaceRow> => {
   }
   return data;
 };
+
+/**
+ * Updates the workspace
+ * @param WorkspaceId - The workspace UUID
+ * @param updatedFields
+ * @returns
+ */
+export const updateWorkspace = async (WorkspaceId: string, updatedFields: Partial<WorkspaceRecord['Update']>) => {
+  const supabase = createSupabaseAdminClient();
+  try {
+    const { data, error } = await supabase
+      .from('Workspace')
+      .update(updatedFields)
+      .eq('id', WorkspaceId)
+      .select('id')
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Error updating Workspace:', error);
+      throw new Error(error.message);
+    }
+
+    return data;
+  } catch (err) {
+    console.error('Unexpected error in updateWorkspace:', err);
+    throw new Error('Failed to update Workspace');
+  }
+};

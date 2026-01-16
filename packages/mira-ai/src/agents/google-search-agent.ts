@@ -27,6 +27,7 @@ export interface GoogleSearchAgentInput {
   googleQueries: Record<string, string[]>; // queries per data point from discovery agent
   baseDataPoints: Record<string, DataPoint | undefined>; // existing data points to check confidence
   includeRawResults?: boolean; // when true, include raw Google responses
+  maxGoogleQueries?: number; // max number of Google queries to run
 }
 
 /** Output returned by the Google Search Agent */
@@ -71,12 +72,11 @@ const selectQueriesToRun = (
 
   console.info(`[GoogleSearchAgent] dataPointsToSearch=${dataPointsToSearch.join(', ')}`);
 
-  // Deduplicate and limit total queries (combine similar queries)
+  // Deduplicate queries (limit is applied by caller via maxGoogleQueries)
   const deduped = Array.from(new Set(queries));
   console.info(`[GoogleSearchAgent] queries=${JSON.stringify(deduped)}`);
 
-  // Limit to reasonable number of queries (e.g., 3-4 max)
-  return deduped.slice(0, 4);
+  return deduped;
 };
 
 /**
@@ -104,12 +104,20 @@ export const createGoogleSearchAgent = (keys: string[]) =>
 // Runs the Google Search Agent end-to-end
 export const runGoogleSearchAgent = async (input: GoogleSearchAgentInput): Promise<GoogleSearchAgentOutput> => {
   try {
-    const { companyName, domain, needs, googleQueries, baseDataPoints, includeRawResults = false } = input;
+    const {
+      companyName,
+      domain,
+      needs,
+      googleQueries,
+      baseDataPoints,
+      includeRawResults = false,
+      maxGoogleQueries = LIMIT_GOOGLE_QUERIES,
+    } = input;
     if (!companyName || !Array.isArray(needs) || !googleQueries || !baseDataPoints) {
       return { success: false, queries: [], resultsByQuery: {}, error: 'invalid input' };
     }
 
-    const queries = selectQueriesToRun(needs, googleQueries, baseDataPoints).slice(0, LIMIT_GOOGLE_QUERIES);
+    const queries = selectQueriesToRun(needs, googleQueries, baseDataPoints).slice(0, maxGoogleQueries);
 
     // If no queries are needed (all data points have high confidence), skip Google search
     if (queries.length === 0) {

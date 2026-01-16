@@ -3,7 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 
 // Define the directory for the database file
-const dbFolder = path.join(process.cwd(), './db');
+const dbFolder = path.join(process.cwd(), './data');
 const dbPath = path.join(dbFolder, 'enriched-leads.db');
 
 // Ensure the database directory exists before initializing SQLite
