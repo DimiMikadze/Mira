@@ -260,12 +260,11 @@ const startTime = performance.now();
 
 try {
   await run();
-} catch (err) {
-  console.error('Critical crash:', err);
-  process.exit(1);
-} finally {
   const executionTimeMin = ((performance.now() - startTime) / 60000).toFixed(2);
   console.info(`==========\n Total execution time: ${executionTimeMin} \n==========`);
   console.info('Done. Keeping process alive.');
   setInterval(() => {}, 1 << 30);
+} catch (err) {
+  console.error('Critical crash:', err);
+  process.exit(1);
 }
