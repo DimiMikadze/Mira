@@ -40,3 +40,4 @@ h
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+render.md

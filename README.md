@@ -27,7 +27,7 @@ The system features smart early termination - once all configured data points re
 
 The core of Mira is a framework-agnostic library that can be published as an npm package or integrated directly into your applications, pipelines, or custom workflows.
 
-To show how it works in practice, this repository includes a complete Next.js frontend application that consumes the core library and provides a full interface with workspace management for running research and viewing results.
+To show how it works in practice, this repository includes a complete Next.js frontend application that consumes the core library and provides a full interface with workspace management for running research and viewing results. For processing large datasets, a bulk enrichment tool is also included.
 
 ## Mira in action
 
@@ -48,6 +48,7 @@ To show how it works in practice, this repository includes a complete Next.js fr
 - **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and cookie consent banners.
 - **Composable Core Library** – Framework-agnostic and publishable as an npm package, ready for Node.js/TypeScript projects.
 - **Complete Next.js Frontend** – Full application showing how to consume the library with workspace management, user authentication, and live progress updates.
+- **Bulk Processing** – Process large datasets with resume capability, concurrent processing, and automatic result export.
 
 ## How it works
 
@@ -101,6 +102,12 @@ The system continuously monitors data point confidence scores. If all configured
 - **TailwindCSS** – styling for the UI.
 - **shadcn/ui** – accessible, prebuilt UI components.
 
+### Bulk Processing (`apps/mira-bulk`)
+
+- **Node.js** – standalone CLI for processing large datasets.
+- **SQLite** – local progress tracking with resume capability.
+- **PQueue** – concurrent processing with configurable parallelism.
+
 ## Requirements
 
 - **Node.js** v18 or later (ensures compatibility with the OpenAI Agents SDK)
@@ -137,10 +144,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 ## Installation & Setup
 
-You can use Mira in two ways:
+You can use Mira in three ways:
 
 1. **Local Development** (run the frontend application with workspaces and the core library)
 2. **As an npm Package** (use the mira-ai library directly in your own project)
+3. **Bulk Processing** (process large datasets via CLI)
 
 ---
 
@@ -231,16 +239,23 @@ console.log(result.enrichedCompany);
 console.log(result.companyAnalysis);
 ```
 
+### 3. Bulk Processing
+
+For processing large datasets, use the bulk enrichment tool. It reads from a CSV, processes companies with configurable concurrency, saves progress to SQLite for resume capability, and exports results to Supabase storage.
+
+See [Mira Bulk README](./apps/mira-bulk/README.md) for setup and deployment instructions.
+
 ### Authentication
 
 The frontend application uses Supabase for user authentication and workspace management. Users can sign up and sign in through the Supabase Auth system, with each user having access to their own private workspaces.
 
 ## Additional Documentation
 
-This monorepo contains two main packages, each with its own README that provides a deeper look into architecture and usage:
+This monorepo contains three main packages, each with its own README:
 
 - **[Mira AI Library](./packages/mira-ai/README.md)** — Node.js/TypeScript library with agents, services, and orchestration logic.
 - **[Mira Frontend](./apps/mira-frontend/README.md)** — Next.js application with workspace management for running enrichment and visualizing results.
+- **[Mira Bulk](./apps/mira-bulk/README.md)** — CLI tool for bulk company enrichment with resume capability.
 
 ## AI-Assisted Development
 

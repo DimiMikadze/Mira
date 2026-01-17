@@ -137,7 +137,7 @@ const run = async () => {
   console.info(`Found ${totalCompanies} companies to process`);
 
   const queue = new PQueue({
-    concurrency: 4,
+    concurrency: 6,
   });
   const results: Record<string, string>[] = [];
 

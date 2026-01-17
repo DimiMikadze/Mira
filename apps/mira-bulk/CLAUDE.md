@@ -1,3 +1,7 @@
+# Mira Bulk
+
+Bulk enrichment processor for large company datasets. Reads companies from a CSV (via Supabase storage), enriches each using mira-ai with workspace configuration, tracks progress in SQLite for resume capability, and exports results back to Supabase. Designed to run as a long-running background worker on Render.
+
 ## Tech Stack
 
 - Node.js 24.5 (built-in TypeScript and .env support)
