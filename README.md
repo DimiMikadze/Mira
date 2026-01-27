@@ -2,7 +2,7 @@
   <img src="apps/mira-frontend/public/logo.svg" alt="Mira Logo" width="300" />
 </p>
 
-<p align="center">Agentic AI System for Company Data Enrichment</p>
+<p align="center">Agentic AI System for Buying Signal Discovery</p>
 
 <div align="center">
 
@@ -21,13 +21,13 @@
 
 # About Mira
 
-Mira is an agentic AI system that automates company data enrichment with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
+Mira is an agentic AI system for buying signal discovery with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
 
 The system features smart early termination - once all configured data points reach high confidence scores, it automatically stops processing to save time and API costs. Sources are fully configurable, allowing you to enable or disable website crawling, LinkedIn analysis, and Google Search based on your needs.
 
 The core of Mira is a framework-agnostic library that can be published as an npm package or integrated directly into your applications, pipelines, or custom workflows.
 
-To show how it works in practice, this repository includes a complete Next.js frontend application that consumes the core library and provides a full interface with workspace management for running research and viewing results. For processing large datasets, a bulk enrichment tool is also included.
+To show how it works in practice, this repository includes a complete Next.js frontend application that consumes the core library and provides a full interface with workspace management for running research and viewing results. For processing large datasets, a bulk processing tool is also included.
 
 ## Mira in action
 
@@ -241,7 +241,7 @@ console.log(result.companyAnalysis);
 
 ### 3. Bulk Processing
 
-For processing large datasets, use the bulk enrichment tool. It reads from a CSV, processes companies with configurable concurrency, saves progress to SQLite for resume capability, and exports results to Supabase storage.
+For processing large datasets, use the bulk processing tool. It reads from a CSV, processes companies with configurable concurrency, saves progress to SQLite for resume capability, and exports results to Supabase storage.
 
 See [Mira Bulk README](./apps/mira-bulk/README.md) for setup and deployment instructions.
 
