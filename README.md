@@ -2,7 +2,7 @@
   <img src="apps/mira-frontend/public/logo.svg" alt="Mira Logo" width="300" />
 </p>
 
-<p align="center">Agentic AI System for Buying Signal Discovery</p>
+<p align="center">Multi-Agent AI System for Company Research</p>
 
 <div align="center">
 
@@ -21,7 +21,9 @@
 
 # About Mira
 
-Mira is an agentic AI system for buying signal discovery with configurable data points and intelligent source selection. It gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
+Company information lives in many places: websites, LinkedIn, news, press releases, job postings, social media, review sites. Getting the full picture means checking multiple sources and deciding what to trust.
+
+Mira does this automatically. It's a multi-agent AI system that gathers information from company websites, LinkedIn profiles, and Google Search, then assembles a structured profile with confidence scores and clear source attribution.
 
 The system features smart early termination - once all configured data points reach high confidence scores, it automatically stops processing to save time and API costs. Sources are fully configurable, allowing you to enable or disable website crawling, LinkedIn analysis, and Google Search based on your needs.
 
@@ -37,15 +39,26 @@ To show how it works in practice, this repository includes a complete Next.js fr
 
 ## Key Features
 
+### Data Collection
+
 - **Configurable Data Points** – Define exactly what information to collect (company name, industry, funding, etc.) with custom descriptions for precise extraction.
 - **Intelligent Source Selection** – Enable/disable website crawling, LinkedIn analysis, and Google Search based on your needs.
-- **Smart Early Termination** – Automatically stops processing when all data points reach high confidence scores, saving time and API costs.
+- **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and cookie consent banners.
+
+### Intelligence & Orchestration
+
 - **Multi-Agent Architecture** – Specialized agents handle discovery, internal pages, LinkedIn, Google Search, and analysis, with intelligent orchestration.
+- **Smart Early Termination** – Automatically stops processing when all data points reach high confidence scores, saving time and API costs.
 - **Confidence Scoring & Source Attribution** – Each fact includes a confidence score (1-5) and references its source for transparency and trust.
+
+### Analysis & Output
+
 - **Company Analysis & Criteria Matching** – Generate executive summaries and evaluate companies against custom criteria with fit scores (0-10) and detailed reasoning.
 - **Personalized Outreach Generation** – AI-powered LinkedIn and email outreach message creation based on enriched company data with customizable prompts.
+
+### Developer Experience
+
 - **Realtime Progress Events** – Emits structured events during execution so you can track and display live progress.
-- **Service Layer for Data Gathering** – Built-in services handle scraping, Google Search, LinkedIn company data, and cookie consent banners.
 - **Composable Core Library** – Framework-agnostic and publishable as an npm package, ready for Node.js/TypeScript projects.
 - **Complete Next.js Frontend** – Full application showing how to consume the library with workspace management, user authentication, and live progress updates.
 - **Bulk Processing** – Process large datasets with resume capability, concurrent processing, and automatic result export.
