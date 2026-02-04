@@ -39,7 +39,7 @@ const fetchWithScrapingBee = async (targetUrl: string) => {
   });
 };
 
-const MAX_HTML_BYTES = 1_500_000; // 1_500_000;
+const MAX_HTML_BYTES = 3_000_000; // 3 MB - supports larger SPAs and content-heavy pages
 const MAX_TEXT_CHARS = 750_000; // 750_000;
 
 /**
@@ -158,7 +158,7 @@ const processHtmlContent = ({
     let truncatedHtml = rawHtml;
     if (rawHtml.length > MAX_HTML_BYTES) {
       console.warn(
-        `[processHtmlContent] HTML too large (${rawHtml.length} chars), truncating to ${MAX_HTML_BYTES} for processing`
+        `[processHtmlContent] HTML too large (${rawHtml.length} chars), truncating to ${MAX_HTML_BYTES} for processing`,
       );
       truncatedHtml = rawHtml.slice(0, MAX_HTML_BYTES);
     }
@@ -171,7 +171,7 @@ const processHtmlContent = ({
       .replace(/<svg[\s\S]*?<\/svg>/gi, '');
 
     console.info(
-      `[processHtmlContent] Pre-cleaned HTML - removed scripts, styles, comments, SVGs. Size: ${preCleanedHtml.length} chars.`
+      `[processHtmlContent] Pre-cleaned HTML - removed scripts, styles, comments, SVGs. Size: ${preCleanedHtml.length} chars.`,
     );
 
     // Configure JSDOM to suppress non-critical CSS parsing errors
@@ -249,7 +249,7 @@ const processHtmlContent = ({
       });
 
       console.info(
-        `[processHtmlContent] Extracted ${internalLinks.length} internal links and ${socialMediaUrls.length} social media links from complete document.`
+        `[processHtmlContent] Extracted ${internalLinks.length} internal links and ${socialMediaUrls.length} social media links from complete document.`,
       );
     }
 
@@ -307,7 +307,7 @@ const processHtmlContent = ({
     // Apply comprehensive text cleaning and enforce size limits
     const finalContent = cleanTextContent(extractedTextContent).slice(0, MAX_TEXT_CHARS);
     console.info(
-      `[processHtmlContent] Extracted and cleaned text content (${finalContent.length} chars, limited to ${MAX_TEXT_CHARS}).`
+      `[processHtmlContent] Extracted and cleaned text content (${finalContent.length} chars, limited to ${MAX_TEXT_CHARS}).`,
     );
 
     // Return structured result based on extraction requirements
@@ -366,7 +366,7 @@ export const scrape = async ({
       const rawHtmlContent = textDecoder.decode(response.data);
 
       console.info(
-        `[scrape] Successfully fetched and decoded HTML from ${finalFormattedUrl} (${rawHtmlContent.length} chars)`
+        `[scrape] Successfully fetched and decoded HTML from ${finalFormattedUrl} (${rawHtmlContent.length} chars)`,
       );
 
       const processedResult = processHtmlContent({
@@ -398,7 +398,7 @@ export const scrape = async ({
         errorMessage = err.message;
       }
       console.error(
-        `[scrape] Fetch attempt with ${scheme.toUpperCase()} failed for ${finalFormattedUrl}: ${errorMessage}`
+        `[scrape] Fetch attempt with ${scheme.toUpperCase()} failed for ${finalFormattedUrl}: ${errorMessage}`,
       );
       return null;
     }
