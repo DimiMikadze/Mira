@@ -12,7 +12,7 @@ import Papa from 'papaparse';
 import { researchCompany, type CustomDataPoint, type EnrichmentResult } from 'mira-ai';
 import PQueue from 'p-queue';
 
-const WORKSPACE_ID = '9c782526-dd5b-40af-9ddb-d57938563c20';
+const WORKSPACE_ID = 'a9dd366a-bd19-4155-9045-20e5db939322';
 const COMPANIES_CSV_URL = 'https://vcoabomphfvqiexopjjh.supabase.co/storage/v1/object/public/CSV/companies.csv';
 
 // Stop processing after this many consecutive failures
@@ -237,11 +237,11 @@ const run = async () => {
           circuitBreakerTriggered = true;
           queue.clear();
           console.error(
-            `Circuit breaker triggered after ${CIRCUIT_BREAKER_THRESHOLD} consecutive failures. Stopping execution.`
+            `Circuit breaker triggered after ${CIRCUIT_BREAKER_THRESHOLD} consecutive failures. Stopping execution.`,
           );
         }
       }
-    })
+    }),
   );
 
   await Promise.all(promises);
@@ -263,7 +263,7 @@ const run = async () => {
     console.error(
       `Enrichment stopped early. Processed ${processedCount - skippedCount} new, ${skippedCount} skipped, ${
         totalCompanies - processedCount
-      } remaining.`
+      } remaining.`,
     );
   } else {
     console.info(`Completed. Processed ${processedCount - skippedCount} new, ${skippedCount} skipped.`);
