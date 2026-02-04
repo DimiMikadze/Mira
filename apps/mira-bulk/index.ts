@@ -58,7 +58,21 @@ const flattenEnrichmentResult = (result: EnrichmentResult, company: CompanyRow):
   if (result.enrichedCompany) {
     Object.entries(result.enrichedCompany).forEach(([key, value]) => {
       if (key === 'socialMediaLinks' && Array.isArray(value)) {
-        flattenedData[key] = value.join(', ');
+        value.forEach((url: string) => {
+          if (url.includes('facebook.com')) {
+            flattenedData['Company Facebook URL'] = url;
+          } else if (url.includes('linkedin.com')) {
+            flattenedData['Company LinkedIn URL'] = url;
+          } else if (url.includes('instagram.com')) {
+            flattenedData['Company Instagram URL'] = url;
+          } else if (url.includes('twitter.com') || url.includes('x.com')) {
+            flattenedData['Company Twitter URL'] = url;
+          } else if (url.includes('youtube.com')) {
+            flattenedData['Company YouTube URL'] = url;
+          } else if (url.includes('tiktok.com')) {
+            flattenedData['Company TikTok URL'] = url;
+          }
+        });
       } else if (value && typeof value === 'object' && 'content' in value) {
         flattenedData[key] = String((value as { content: string }).content);
       } else if (typeof value === 'string') {
